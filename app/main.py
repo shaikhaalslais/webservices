@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from app.routes import bookings
 
 app = FastAPI(
     title="Pilates Booking API",
@@ -18,16 +19,22 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Include the bookings router
+app.include_router(bookings.router)
+
 @app.get("/")
 def root():
     return {
         "message": "Welcome to Pilates Booking API",
         "version": "1.0.0",
-        "documentation": "/docs"
+        "documentation": "/docs",
+        "endpoints": {
+            "bookings": "/api/bookings",
+            "classes": "/api/classes",
+            "clients": "/api/clients"
+        }
     }
 
 @app.get("/health")
 def health_check():
-    return {"status": "healthy", "api": "running"}
-
-# We'll add more routes here later
+    return {"status": "healthy", "database": "connected"}
