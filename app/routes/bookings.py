@@ -8,40 +8,28 @@ from app.schemas import BookingResponse, BookingCreate, ClientResponse, ClassRes
 
 router = APIRouter(prefix="/api", tags=["Bookings API"])
 
-# ============================================
-# BOOKING ENDPOINTS (CRUD)
-# ============================================
+# booking endpoints (CRUD)
 
+# get all bookings
 @router.get("/bookings", response_model=List[BookingResponse])
 def get_all_bookings(db: Session = Depends(get_db)):
-    """
-    Get all bookings
-    Returns: List of all bookings in the system
-    """
     bookings = db.query(Booking).all()
     return bookings
 
-
+ # get a specific booking by ID
 @router.get("/bookings/{booking_id}", response_model=BookingResponse)
 def get_booking(booking_id: int, db: Session = Depends(get_db)):
-    """
-    Get a specific booking by ID
-    """
     booking = db.query(Booking).filter(Booking.id == booking_id).first()
-    if not booking:
+    if not booking:qsx.  
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Booking with id {booking_id} not found"
         )
     return booking
 
-
+# creates a new booking so it checks if client exists and class exists
 @router.post("/bookings", response_model=BookingResponse, status_code=status.HTTP_201_CREATED)
-def create_booking(booking: BookingCreate, db: Session = Depends(get_db)):
-    """
-    Create a new booking
-    Validates that client and class exist
-    """
+def create_booking(booking: BookingCreate, db: Session = Depends(get_db)): 
     # Check if client exists
     client = db.query(Client).filter(Client.id == booking.client_id).first()
     if not client:
@@ -76,12 +64,10 @@ def create_booking(booking: BookingCreate, db: Session = Depends(get_db)):
     
     return new_booking
 
-
+# update an existing booking
 @router.put("/bookings/{booking_id}", response_model=BookingResponse)
 def update_booking(booking_id: int, booking_update: BookingCreate, db: Session = Depends(get_db)):
-    """
-    Update an existing booking
-    """
+
     booking = db.query(Booking).filter(Booking.id == booking_id).first()
     if not booking:
         raise HTTPException(
@@ -98,12 +84,10 @@ def update_booking(booking_id: int, booking_update: BookingCreate, db: Session =
     db.refresh(booking)
     return booking
 
-
+# delete booking
 @router.delete("/bookings/{booking_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_booking(booking_id: int, db: Session = Depends(get_db)):
-    """
-    Delete (cancel) a booking
-    """
+
     booking = db.query(Booking).filter(Booking.id == booking_id).first()
     if not booking:
         raise HTTPException(
@@ -116,25 +100,19 @@ def delete_booking(booking_id: int, db: Session = Depends(get_db)):
     return None
 
 
-# ============================================
-# CLASS ENDPOINTS
-# ============================================
+# Class endpoints
 
+# get all pilates classes
 @router.get("/classes", response_model=List[ClassResponse])
 def get_all_classes(db: Session = Depends(get_db)):
-    """
-    Get all Pilates classes
-    """
     classes = db.query(PilatesClass).all()
     return classes
 
-
+# check how many spots are available in a class
+# returns: capacity, booked count, and available spots
 @router.get("/classes/{class_id}/availability")
 def check_class_availability(class_id: int, db: Session = Depends(get_db)):
-    """
-    Check how many spots are available in a class
-    Returns: capacity, booked count, and available spots
-    """
+    
     pilates_class = db.query(PilatesClass).filter(PilatesClass.id == class_id).first()
     if not pilates_class:
         raise HTTPException(
@@ -160,24 +138,19 @@ def check_class_availability(class_id: int, db: Session = Depends(get_db)):
     }
 
 
-# ============================================
-# CLIENT ENDPOINTS
-# ============================================
+# client endpoints
 
+# get all clients
 @router.get("/clients", response_model=List[ClientResponse])
 def get_all_clients(db: Session = Depends(get_db)):
-    """
-    Get all clients
-    """
+
     clients = db.query(Client).all()
     return clients
 
-
+# get all bookings for a specific client
 @router.get("/clients/{client_id}/bookings", response_model=List[BookingResponse])
 def get_client_bookings(client_id: int, db: Session = Depends(get_db)):
-    """
-    Get all bookings for a specific client
-    """
+   
     client = db.query(Client).filter(Client.id == client_id).first()
     if not client:
         raise HTTPException(
