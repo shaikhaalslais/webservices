@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel
 from datetime import datetime
 from typing import Optional
 
@@ -24,7 +24,7 @@ class BookingResponse(BookingBase):
 
 class ClientBase(BaseModel):
     name: str
-    email: EmailStr
+    email: str
     phone: Optional[str] = None
     age: Optional[int] = None
     package_type: Optional[str] = None
