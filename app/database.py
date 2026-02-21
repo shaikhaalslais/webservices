@@ -2,18 +2,20 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
-# SQLite database (simple file-based database)
+# SQLite database configuration (file-based local database)
 SQLALCHEMY_DATABASE_URL = "sqlite:///./pilates_booking.db"
 
+# Create database engine
 engine = create_engine(
     SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
 )
 
+# Create a session
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-Base = declarative_base()
+Base = declarative_base() # Base class for all database models
 
-# Dependency to get database session
+# Dependency that provides a database session to API endpoints
 def get_db():
     db = SessionLocal()
     try:
