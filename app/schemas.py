@@ -2,13 +2,14 @@ from pydantic import BaseModel
 from datetime import datetime
 from typing import Optional
 
-# === BOOKING SCHEMAS ===
-
+# booking schemas
+# Used for validating booking requests and formatting responses
 class BookingBase(BaseModel):
-    client_id: int
-    class_id: int
-    status: Optional[str] = "confirmed"
+    client_id: int #must be a number
+    class_id: int #must be a number
+    status: Optional[str] = "confirmed" #must be a text
 
+# schema used when creating a new booking
 class BookingCreate(BookingBase):
     pass
 
@@ -20,8 +21,8 @@ class BookingResponse(BookingBase):
     class Config:
         from_attributes = True
 
-# === CLIENT SCHEMAS ===
 
+# client schemas
 class ClientBase(BaseModel):
     name: str
     email: str
@@ -32,6 +33,7 @@ class ClientBase(BaseModel):
 class ClientCreate(ClientBase):
     pass
 
+# Schema returned in API responses for clients
 class ClientResponse(ClientBase):
     id: int
     join_date: datetime
@@ -40,8 +42,7 @@ class ClientResponse(ClientBase):
     class Config:
         from_attributes = True
 
-# === CLASS SCHEMAS ===
-
+# class response schema
 class ClassResponse(BaseModel):
     id: int
     name: str

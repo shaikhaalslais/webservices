@@ -4,7 +4,7 @@ from sqlalchemy import func
 from typing import List
 from app.database import get_db
 from app.models import Booking, Client, PilatesClass
-from app.schemas import BookingResponse, BookingCreate, ClientResponse, ClassResponse
+from app.schemas import BookingResponse, BookingCreate, ClientResponse, ClientCreate, ClassResponse
 
 router = APIRouter(prefix="/api", tags=["Bookings API"])
 
@@ -20,7 +20,7 @@ def get_all_bookings(db: Session = Depends(get_db)):
 @router.get("/bookings/{booking_id}", response_model=BookingResponse)
 def get_booking(booking_id: int, db: Session = Depends(get_db)):
     booking = db.query(Booking).filter(Booking.id == booking_id).first()
-    if not booking:qsx.  
+    if not booking:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Booking with id {booking_id} not found"
@@ -138,19 +138,54 @@ def check_class_availability(class_id: int, db: Session = Depends(get_db)):
     }
 
 
-# client endpoints
+# client endpoints (CRUD)
 
-# get all clients
+# create a new client
+@router.post("/clients", response_model=ClientResponse, status_code=status.HTTP_201_CREATED)
+def create_client(client: ClientCreate, db: Session = Depends(get_db)):
+   
+    # Check if email already exists
+    existing_client = db.query(Client).filter(Client.email == client.email).first()
+    if existing_client:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Client with email {client.email} already exists"
+        )
+    
+    # Create new client
+    new_client = Client(**client.dict())
+    db.add(new_client)
+    db.commit()
+    db.refresh(new_client)
+    
+    return new_client
+
+
+# read a specific client by ID
+@router.get("/clients/{client_id}", response_model=ClientResponse)
+def get_client(client_id: int, db: Session = Depends(get_db)):
+  
+    client = db.query(Client).filter(Client.id == client_id).first()
+    if not client:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Client with id {client_id} not found"
+        )
+    return client
+
+# read all clients
 @router.get("/clients", response_model=List[ClientResponse])
 def get_all_clients(db: Session = Depends(get_db)):
 
     clients = db.query(Client).all()
     return clients
 
-# get all bookings for a specific client
-@router.get("/clients/{client_id}/bookings", response_model=List[BookingResponse])
-def get_client_bookings(client_id: int, db: Session = Depends(get_db)):
-   
+
+# update an existing client
+@router.put("/clients/{client_id}", response_model=ClientResponse)
+def update_client(client_id: int, client_update: ClientCreate, db: Session = Depends(get_db)):
+
+    # Find the client
     client = db.query(Client).filter(Client.id == client_id).first()
     if not client:
         raise HTTPException(
@@ -158,5 +193,40 @@ def get_client_bookings(client_id: int, db: Session = Depends(get_db)):
             detail=f"Client with id {client_id} not found"
         )
     
-    bookings = db.query(Booking).filter(Booking.client_id == client_id).all()
-    return bookings
+    # Check if new email conflicts with another client
+    if client_update.email != client.email:
+        existing = db.query(Client).filter(
+            Client.email == client_update.email,
+            Client.id != client_id
+        ).first()
+        if existing:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Email {client_update.email} already in use by another client"
+            )
+    
+    # Update fields
+    client.name = client_update.name
+    client.email = client_update.email
+    client.phone = client_update.phone
+    client.age = client_update.age
+    client.package_type = client_update.package_type
+    
+    db.commit()
+    db.refresh(client)
+    return client
+
+
+# delete a client
+@router.delete("/clients/{client_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_client(client_id: int, db: Session = Depends(get_db)):
+    client = db.query(Client).filter(Client.id == client_id).first()
+    if not client:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Client with id {client_id} not found"
+        )
+    
+    db.delete(client)
+    db.commit()
+    return None
