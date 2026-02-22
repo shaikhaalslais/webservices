@@ -20,11 +20,11 @@ API_BASE_URL = "http://localhost:8000"
 
 @app.list_tools()
 async def list_tools() -> list[types.Tool]:
-    """
-    Define tools that Claude can use to interact with your API
-    Each tool maps to one of your FastAPI endpoints
-    """
+    # Define the tools (API endpoints) that Claude AI can use
+    # Each tool maps to one of your FastAPI endpoints
+
     return [
+        # Tool 1: Get All Bookings
         types.Tool(
             name="get_all_bookings",
             description="Retrieve all Pilates class bookings from the database. Returns booking details including client info, class info, and booking status.",
@@ -34,6 +34,8 @@ async def list_tools() -> list[types.Tool]:
                 "required": []
             }
         ),
+
+        # Tool 2: Create a New Booking
         types.Tool(
             name="create_booking",
             description="Create a new Pilates class booking. Requires client_id and class_id. Returns the created booking with confirmation.",
@@ -58,6 +60,8 @@ async def list_tools() -> list[types.Tool]:
                 "required": ["client_id", "class_id"]
             }
         ),
+
+        # Tool 3: Get All Classes
         types.Tool(
             name="get_all_classes",
             description="Retrieve all available Pilates classes with details about instructor, time, level, and capacity.",
@@ -67,6 +71,8 @@ async def list_tools() -> list[types.Tool]:
                 "required": []
             }
         ),
+
+        # Tool 4: Get All Clients
         types.Tool(
             name="get_all_clients",
             description="Retrieve all registered clients with their information and booking history.",
@@ -76,6 +82,8 @@ async def list_tools() -> list[types.Tool]:
                 "required": []
             }
         ),
+
+        # Tool 5: Check Class Availability
         types.Tool(
             name="check_class_availability",
             description="Check how many spots are available in a specific Pilates class.",
@@ -95,14 +103,16 @@ async def list_tools() -> list[types.Tool]:
 
 @app.call_tool()
 async def call_tool(name: str, arguments: dict) -> list[types.TextContent]:
-    """
-    Execute the requested tool by calling your FastAPI endpoints
-    This is where MCP bridges to your actual API
-    """
+    # Execute the requested tool by calling your FastAPI endpoints
+    # This is where MCP bridges to your actual API
     
+    # Create async HTTP client for making API requests
     async with httpx.AsyncClient() as client:
         try:
+            # Handle each tool by calling the appropriate API endpoint
+
             if name == "get_all_bookings":
+                # GET /api/bookings - Retrieve all bookings
                 response = await client.get(f"{API_BASE_URL}/api/bookings")
                 response.raise_for_status()
                 data = response.json()
@@ -112,6 +122,7 @@ async def call_tool(name: str, arguments: dict) -> list[types.TextContent]:
                 )]
             
             elif name == "create_booking":
+                # POST /api/bookings - Create a new booking
                 response = await client.post(
                     f"{API_BASE_URL}/api/bookings",
                     json=arguments
@@ -120,10 +131,11 @@ async def call_tool(name: str, arguments: dict) -> list[types.TextContent]:
                 data = response.json()
                 return [types.TextContent(
                     type="text",
-                    text=f"✅ Booking created successfully! Details: {data}"
+                    text=f" Booking created successfully! Details: {data}"
                 )]
             
             elif name == "get_all_classes":
+                # GET /api/classes - Retrieve all Pilates classes
                 response = await client.get(f"{API_BASE_URL}/api/classes")
                 response.raise_for_status()
                 data = response.json()
@@ -133,6 +145,7 @@ async def call_tool(name: str, arguments: dict) -> list[types.TextContent]:
                 )]
             
             elif name == "get_all_clients":
+                # GET /api/clients - Retrieve all clients
                 response = await client.get(f"{API_BASE_URL}/api/clients")
                 response.raise_for_status()
                 data = response.json()
@@ -150,7 +163,7 @@ async def call_tool(name: str, arguments: dict) -> list[types.TextContent]:
                     type="text",
                     text=f"Class availability: {data['available_spots']} spots remaining out of {data['capacity']}"
                 )]
-            
+             
             else:
                 return [types.TextContent(
                     type="text",
@@ -165,7 +178,7 @@ async def call_tool(name: str, arguments: dict) -> list[types.TextContent]:
 
 
 async def main():
-    """Run the MCP server"""
+    # run the mcp server
     async with stdio_server() as (read_stream, write_stream):
         await app.run(
             read_stream,
