@@ -3,7 +3,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
 # SQLite database configuration (file-based local database)
-SQLALCHEMY_DATABASE_URL = "sqlite:///./pilates_booking.db"
+SQLALCHEMY_DATABASE_URL = "sqlite:///./data/pilates_booking.db"
 
 # Create database engine
 engine = create_engine(
