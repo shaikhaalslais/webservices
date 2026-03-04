@@ -5,7 +5,7 @@ from mcp.server.stdio import stdio_server
 from mcp import types
 
 app = Server("pilates-booking-api")
-API_BASE_URL = "https://glorious-halibut-jj5v9v9jrx6wfqxrg-8000.app.github.dev"
+API_BASE_URL = "http://127.0.0.1:8000"
 
 
 @app.list_tools()
