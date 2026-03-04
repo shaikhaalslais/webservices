@@ -85,3 +85,22 @@ class Booking(Base):
     # Relationships
     client = relationship("Client", back_populates="bookings")
     pilates_class = relationship("PilatesClass", back_populates="bookings")
+
+
+class PrivateSessionRequest(Base):
+    __tablename__ = "private_session_requests"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, nullable=False)
+    email = Column(String, nullable=False)
+    phone = Column(String, nullable=False)
+    preferred_date = Column(String, nullable=False)  # Store as string for simplicity
+    preferred_time = Column(String, nullable=False)  # "morning", "afternoon", "evening"
+    experience = Column(String)  # "Beginner", "Intermediate", "Advanced"
+    goals = Column(String)  # Text area content
+    injuries = Column(String)  # Health considerations
+    status = Column(String, default="pending")  # pending, confirmed, cancelled
+    created_at = Column(DateTime, default=datetime.utcnow)
+    
+    def __repr__(self):
+        return f"<PrivateSessionRequest {self.name} - {self.preferred_date}>"

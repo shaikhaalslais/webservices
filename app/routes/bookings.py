@@ -3,8 +3,9 @@ from sqlalchemy.orm import Session
 from sqlalchemy import func
 from typing import List
 from app.database import get_db
-from app.models import Booking, Client, PilatesClass
-from app.schemas import BookingResponse, BookingCreate, ClientResponse, ClientCreate, ClassResponse
+from app.models import Booking, Client, PilatesClass, PrivateSessionRequest, Studio
+from app.schemas import BookingResponse, BookingCreate, ClientResponse, ClientCreate, ClassResponse, PrivateSessionResponse, PrivateSessionCreate
+
 
 router = APIRouter(prefix="/api", tags=["Bookings API"])
 
@@ -230,3 +231,78 @@ def delete_client(client_id: int, db: Session = Depends(get_db)):
     db.delete(client)
     db.commit()
     return None
+
+# Private session endpoints(CRUD)
+
+# Create a new private session request
+@router.post("/private-sessions", response_model=PrivateSessionResponse, status_code=status.HTTP_201_CREATED)
+def create_private_session_request(session: PrivateSessionCreate, db: Session = Depends(get_db)):
+    
+    new_request = PrivateSessionRequest(**session.dict())
+    db.add(new_request)
+    db.commit()
+    db.refresh(new_request)
+    
+    return new_request
+
+
+# Get all private session requests
+@router.get("/private-sessions", response_model=List[PrivateSessionResponse])
+def get_all_private_sessions(db: Session = Depends(get_db)):
+    
+    requests = db.query(PrivateSessionRequest).all()
+    return requests
+
+
+# Get a specific private session request
+@router.get("/private-sessions/{request_id}", response_model=PrivateSessionResponse)
+def get_private_session(request_id: int, db: Session = Depends(get_db)):
+    
+    request = db.query(PrivateSessionRequest).filter(PrivateSessionRequest.id == request_id).first()
+    if not request:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Private session request with id {request_id} not found"
+        )
+    return request
+
+
+# Update private session status (approve/reject)
+@router.put("/private-sessions/{request_id}", response_model=PrivateSessionResponse)
+def update_private_session_status(request_id: int, status_update: str, db: Session = Depends(get_db)):
+    
+    request = db.query(PrivateSessionRequest).filter(PrivateSessionRequest.id == request_id).first()
+    if not request:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Private session request with id {request_id} not found"
+        )
+    
+    # Update status
+    request.status = status_update
+    
+    db.commit()
+    db.refresh(request)
+    return request
+
+
+# Delete private session request
+@router.delete("/private-sessions/{request_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_private_session(request_id: int, db: Session = Depends(get_db)):    
+    request = db.query(PrivateSessionRequest).filter(PrivateSessionRequest.id == request_id).first()
+    if not request:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Private session request with id {request_id} not found"
+        )
+    
+    db.delete(request)
+    db.commit()
+    return None
+
+
+# Studios endpoint
+@router.get("/studios")
+def get_all_studios(db: Session = Depends(get_db)):
+    studios = db.query(Studio).all()
+    return studios
