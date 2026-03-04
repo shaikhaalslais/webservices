@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "pilates-booking": {
+      "command": "python",
+      "args": ["/workspaces/webapp/mcp/mcp_server.py"]
+    }
+  }
+}
