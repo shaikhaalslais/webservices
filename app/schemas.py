@@ -48,9 +48,31 @@ class BookingCreate(BookingBase):
 class BookingResponse(BookingBase):
     id: int
     booking_date: datetime
-    created_at: datetime
+    created_at: datetime = None
     client: Optional[ClientResponse] = None
     pilates_class: Optional[ClassResponse] = None
+    
+    class Config:
+        from_attributes = True
+
+# Private Session Schemas
+class PrivateSessionBase(BaseModel):
+    name: str
+    email: str
+    phone: str
+    preferred_date: str
+    preferred_time: str
+    experience: Optional[str] = None
+    goals: Optional[str] = None
+    injuries: Optional[str] = None
+
+class PrivateSessionCreate(PrivateSessionBase):
+    pass
+
+class PrivateSessionResponse(PrivateSessionBase):
+    id: int
+    status: str
+    created_at: datetime
     
     class Config:
         from_attributes = True
