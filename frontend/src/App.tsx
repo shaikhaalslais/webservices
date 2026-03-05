@@ -18,7 +18,8 @@ function Navbar({currentPath,onNavigate}){
             {links.map(l=>(
               <button key={l.path} onClick={()=>onNavigate(l.path)} className="text-sm tracking-wide transition-colors text-gray-600 hover:text-gray-900" style={currentPath===l.path?{color:ROSE_D,fontWeight:500}:{}}>{l.label}</button>
             ))}
-            <button onClick={()=>onNavigate("/classes")} className="px-5 py-2 text-sm rounded-full text-white" style={{background:"#3e2723"}} onMouseEnter={e=>e.currentTarget.style.background="#2e1a17"} onMouseLeave={e=>e.currentTarget.style.background="#3e2723"}>Book Now</button>          </div>
+            <button onClick={()=>onNavigate("/classes")} className="px-5 py-2 text-sm rounded-full text-white" style={{background:"#3e2723"}} onMouseEnter={e=>e.currentTarget.style.background="#2e1a17"} onMouseLeave={e=>e.currentTarget.style.background="#3e2723"}>Book Now</button>
+          </div>
           <button className="md:hidden text-gray-800" onClick={()=>setOpen(!open)}>{open?<X size={24}/>:<Menu size={24}/>}</button>
         </div>
         {open&&<div className="md:hidden pb-4 space-y-2">{links.map(l=><button key={l.path} onClick={()=>{onNavigate(l.path);setOpen(false);}} className="block w-full text-left px-4 py-2 rounded-lg text-gray-700 hover:bg-stone-100">{l.label}</button>)}</div>}
@@ -51,18 +52,10 @@ function Home({onNavigate,onOpenChat}){
   return(
     <div style={{background:BEIGE_L}}>
       <section className="relative h-screen flex items-center justify-center overflow-hidden">
-        {/* Background Image */}
         <div className="absolute inset-0">
-          <img 
-            src="/background.png" 
-            alt="Pilates Studio" 
-            className="w-full h-full object-cover"
-          />
-          {/* Neutral Overlay */}
+          <img src="/background.png" alt="Pilates Studio" className="w-full h-full object-cover"/>
           <div className="absolute inset-0 bg-gradient-to-b from-white/60 via-stone-50/50 to-white/70"/>
         </div>
-        
-        {/* Content */}
         <div className="relative z-10 max-w-4xl mx-auto px-6 text-center">
           <p className="text-xs font-medium tracking-[0.3em] text-gray-600 mb-6 uppercase">Leeds · UK</p>
           <h1 className="text-6xl md:text-8xl font-serif font-light text-gray-900 mb-4 leading-tight">Move with<br/><span style={{color:"#3e2723"}}>intention</span></h1>
@@ -122,14 +115,9 @@ function About(){
             <div className="flex flex-col md:flex-row gap-12 items-start">
               <div className="md:w-1/3">
                 <div className="aspect-square rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-                  <img 
-                    src="/bibi.png" 
-                    alt="Bibi Behbehani - Pilates Instructor"
-                    className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
-                  />
+                  <img src="/bibi.png" alt="Bibi Behbehani - Pilates Instructor" className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"/>
                 </div>
-              </div>  
-
+              </div>
               <div className="md:w-2/3 space-y-5">
                 <h2 className="text-3xl font-serif font-light text-gray-800">Meet Bibi Behbehani</h2>
                 <p className="text-gray-600 text-sm leading-relaxed">Bibi brings warmth, precision, and a genuine passion for movement to every session. Her teaching style is hands-on, attentive, and always tailored to you.</p>
@@ -172,44 +160,27 @@ function Classes(){
   const [booking,setBooking]=useState(false);
   const lc={beginner:"#d1fae5",intermediate:"#dbeafe",advanced:"#ede9fe","all levels":"#fef9c3"};
   const lt={beginner:"#065f46",intermediate:"#1e40af",advanced:"#5b21b6","all levels":"#713f12"};
-  
-  // Load studios and clients on mount (NO CLASSES)
   useEffect(()=>{
     const loadInitial=async()=>{
       try{
-        const[cl,st]=await Promise.all([
-          fetch(`${API}/api/clients`).then(r=>r.json()),
-          fetch(`${API}/api/studios`).then(r=>r.json())
-        ]);
-        setClients(cl);
-        setStudios(st);
+        const[cl,st]=await Promise.all([fetch(`${API}/api/clients`).then(r=>r.json()),fetch(`${API}/api/studios`).then(r=>r.json())]);
+        setClients(cl);setStudios(st);
       }catch(e){console.error(e);}
     };loadInitial();
   },[]);
-
-  // Load classes ONLY when studio is selected
   useEffect(()=>{
     if(!selectedStudio)return;
-    
     const loadClasses=async()=>{
       setLoading(true);
       try{
         const cr=await fetch(`${API}/api/classes`).then(r=>r.json());
         setClasses(cr);
-        
         const av={};
-        await Promise.all(cr.map(async c=>{
-          try{
-            const r=await fetch(`${API}/api/classes/${c.id}/availability`);
-            av[c.id]=await r.json();
-          }catch{}
-        }));
+        await Promise.all(cr.map(async c=>{try{const r=await fetch(`${API}/api/classes/${c.id}/availability`);av[c.id]=await r.json();}catch{}}));
         setAvail(av);
       }catch(e){console.error(e);}finally{setLoading(false);}
-    };
-    loadClasses();
+    };loadClasses();
   },[selectedStudio]);
-  
   const handleBook=async()=>{
     if(!clientId){setBookMsg("Please select a client.");return;}
     setBooking(true);setBookMsg("");
@@ -224,14 +195,8 @@ function Classes(){
       setTimeout(()=>{setBookingClass(null);setBookMsg("");setClientId("");},2000);
     }catch{setBookMsg("Failed. Please try again.");}finally{setBooking(false);}
   };
-  
   const inp="w-full px-3 py-2 rounded-xl border border-stone-200 outline-none text-sm bg-white";
-  
-  // Filter classes by selected studio
-  const filteredClasses = selectedStudio 
-    ? classes.filter(c => c.studio_id === parseInt(selectedStudio))
-    : [];  
-
+  const filteredClasses=selectedStudio?classes.filter(c=>c.studio_id===parseInt(selectedStudio)):[];
   return(
     <div style={{background:BEIGE_L}} className="min-h-screen">
       {bookingClass&&(
@@ -239,17 +204,11 @@ function Classes(){
           <div className="bg-white rounded-3xl p-8 shadow-2xl w-full max-w-md mx-4">
             <h2 className="text-2xl font-serif font-light text-gray-800 mb-1">Book Class</h2>
             <p className="text-sm text-gray-500 mb-5">{bookingClass.name} · {bookingClass.day_of_week} {bookingClass.time}</p>
-            
-            {/* Show location */}
             <div className="mb-5 px-4 py-3 rounded-2xl text-sm bg-stone-50">
               <div className="font-medium text-gray-700 mb-1">Location</div>
-              <div className="text-gray-600 text-xs">
-                {studios.find(s=>s.id===bookingClass.studio_id)?.name || "Loading..."}
-              </div>
+              <div className="text-gray-600 text-xs">{studios.find(s=>s.id===bookingClass.studio_id)?.name||"Loading..."}</div>
             </div>
-            
             {avail[bookingClass.id]&&<div className="mb-5 px-4 py-3 rounded-2xl text-sm" style={{background:BEIGE_L}}><span className="font-medium text-gray-700">{avail[bookingClass.id].available_spots}</span><span className="text-gray-500"> of {avail[bookingClass.id].capacity} spots left</span>{avail[bookingClass.id].is_full&&<span className="ml-2 text-yellow-600 font-medium">· Waitlist</span>}</div>}
-            
             <label className="block text-xs font-medium text-gray-500 mb-1">Select Client *</label>
             <select value={clientId} onChange={e=>setClientId(e.target.value)} className={inp}>
               <option value="">Choose a client…</option>
@@ -263,7 +222,6 @@ function Classes(){
           </div>
         </div>
       )}
-      
       <section className="py-24 px-6">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
@@ -271,54 +229,28 @@ function Classes(){
             <h1 className="text-6xl font-serif font-light text-gray-800 mb-6">Class Schedule</h1>
             <p className="text-gray-500">Small group classes at Leeds leisure centres</p>
           </div>
-          
-          {/* ✨ NEW: Location Filter */}
           <div className="mb-12 max-w-md mx-auto">
             <label className="block text-sm font-medium text-gray-700 mb-2">Filter by Location</label>
-            <select 
-              value={selectedStudio} 
-              onChange={e=>setSelectedStudio(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl border border-stone-200 outline-none text-sm bg-white"
-            >
+            <select value={selectedStudio} onChange={e=>setSelectedStudio(e.target.value)} className="w-full px-4 py-3 rounded-xl border border-stone-200 outline-none text-sm bg-white">
               <option value="">Choose a Location</option>
-              {studios.map(s=>(
-                <option key={s.id} value={s.id}>{s.name} - {s.city}</option>
-              ))}
+              {studios.map(s=><option key={s.id} value={s.id}>{s.name} - {s.city}</option>)}
             </select>
           </div>
-          
-          {loading ? (
-            <div className="text-center text-gray-400 py-20">Loading classes…</div>
-          ) : (
+          {loading?<div className="text-center text-gray-400 py-20">Loading classes…</div>:(
             <div className="grid lg:grid-cols-2 gap-8 mb-16">
-              {filteredClasses.length === 0 ? (
-                <div className="col-span-2 text-center py-12 text-gray-400">
-                  No classes at this location yet
-                </div>
-              ) : (
+              {filteredClasses.length===0?(
+                <div className="col-span-2 text-center py-12 text-gray-400">{selectedStudio?"No classes at this location yet":"Please select a location to see classes"}</div>
+              ):(
                 filteredClasses.map((c,i)=>{
                   const a=avail[c.id];const full=a?.is_full;const lvl=(c.level||"").toLowerCase();
                   const studio=studios.find(s=>s.id===c.studio_id);
                   return(
                     <div key={i} className="bg-white rounded-3xl p-8 shadow-sm hover:shadow-md transition-shadow">
                       <div className="flex items-start justify-between mb-4">
-                        <div>
-                          <h3 className="text-2xl font-serif font-light text-gray-800 mb-2">{c.name}</h3>
-                          <span className="inline-block px-3 py-1 text-xs rounded-full font-medium" style={{background:lc[lvl]||"#f3f4f6",color:lt[lvl]||"#374151"}}>{c.level}</span>
-                        </div>
+                        <div><h3 className="text-2xl font-serif font-light text-gray-800 mb-2">{c.name}</h3><span className="inline-block px-3 py-1 text-xs rounded-full font-medium" style={{background:lc[lvl]||"#f3f4f6",color:lt[lvl]||"#374151"}}>{c.level}</span></div>
                         <div className="text-right">{a&&<div className={`text-xs font-medium mb-1 ${full?"text-yellow-500":"text-green-600"}`}>{full?"Waitlist only":`${a.available_spots} spots left`}</div>}<div className="text-xs text-gray-400">Cap. {c.capacity}</div></div>
                       </div>
-                      
-                      {/* ✨ NEW: Show location name */}
-                      {studio&&(
-                        <div className="mb-4 px-3 py-2 rounded-lg bg-stone-50">
-                          <div className="text-xs font-medium text-gray-500 mb-1">Location</div>
-                          <div className="text-sm text-gray-700">{studio.name}</div>
-                          <div className="text-xs text-gray-400">{studio.address}</div>
-                        </div>
-                      )}
-                      
-                      {c.description&&<p className="text-gray-500 text-sm leading-relaxed mb-4">{c.description}</p>}
+                      {studio&&<div className="mb-4 px-3 py-2 rounded-lg bg-stone-50"><div className="text-xs font-medium text-gray-500 mb-1">Location</div><div className="text-sm text-gray-700">{studio.name}</div></div>}
                       <div className="flex gap-4 mb-4 text-sm text-gray-600">
                         <span className="flex items-center gap-1"><Clock size={14} style={{color:ROSE_D}}/>{c.duration_minutes} min</span>
                         <span className="flex items-center gap-1"><Users size={14} style={{color:ROSE_D}}/>Max {c.capacity}</span>
@@ -331,7 +263,6 @@ function Classes(){
               )}
             </div>
           )}
-          
           <div className="rounded-3xl p-10 text-center" style={{background:"#e8ddd0"}}>
             <h2 className="text-3xl font-serif font-light text-gray-800 mb-3">Class Packages</h2>
             <p className="text-gray-600 text-sm mb-10">Save when you commit to your practice</p>
@@ -359,61 +290,70 @@ function Private(){
   const hc=e=>setForm({...form,[e.target.name]:e.target.value});
   const hs=async()=>{
     if(!form.name||!form.email||!form.phone||!form.preferredDate||!form.preferredTime)return;
-    
     try{
-      const res=await fetch(`${API}/api/private-sessions`,{
-        method:"POST",
-        headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({
-          name: form.name,
-          email: form.email,
-          phone: form.phone,
-          preferred_date: form.preferredDate,
-          preferred_time: form.preferredTime,
-          experience: form.experience,
-          goals: form.goals,
-          injuries: form.injuries
-        })
-      });
-      
-      if(!res.ok){
-        const error = await res.json();
-        alert(error.detail || "Failed to submit request");
-        return;
-      }
-      
+      const res=await fetch(`${API}/api/private-sessions`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({name:form.name,email:form.email,phone:form.phone,preferred_date:form.preferredDate,preferred_time:form.preferredTime,experience:form.experience,goals:form.goals,injuries:form.injuries})});
+      if(!res.ok){const error=await res.json();alert(error.detail||"Failed to submit request");return;}
       setSubmitted(true);
-      setTimeout(()=>{
-        setSubmitted(false);
-        setForm({name:"",email:"",phone:"",preferredDate:"",preferredTime:"",experience:"",goals:"",injuries:""});
-      },3000);
-    }catch(err){
-      console.error(err);
-      alert("Failed to submit. Please try again.");
-    }
+      setTimeout(()=>{setSubmitted(false);setForm({name:"",email:"",phone:"",preferredDate:"",preferredTime:"",experience:"",goals:"",injuries:""});},3000);
+    }catch(err){console.error(err);alert("Failed to submit. Please try again.");}
   };
   const ic="w-full px-4 py-3 rounded-xl border border-stone-200 outline-none text-sm bg-white";
+
+  const packages=[
+    {sessions:1,price:"£25",label:"Single Session",sub:"60 minutes · max 2 people",highlight:false},
+    {sessions:3,price:"£65",label:"3 Session Package",sub:"Save £10 · max 2 people per session",highlight:false},
+    {sessions:5,price:"£105",label:"5 Session Package",sub:"Save £20 · max 2 people per session",highlight:true},
+  ];
+
   return(
     <div style={{background:BEIGE_L}} className="min-h-screen">
       <section className="py-24 px-6">
         <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-14"><p className="text-xs tracking-[0.3em] text-gray-400 mb-4 uppercase">One-on-One</p><h1 className="text-6xl font-serif font-light text-gray-800 mb-6">Private Sessions</h1><p className="text-gray-500">Tailored instruction for your unique needs and goals</p></div>
-          <div className="grid md:grid-cols-2 gap-8 mb-14">
+          <div className="text-center mb-14">
+            <p className="text-xs tracking-[0.3em] text-gray-400 mb-4 uppercase">One-on-One</p>
+            <h1 className="text-6xl font-serif font-light text-gray-800 mb-6">Private Sessions</h1>
+            <p className="text-gray-500">Tailored instruction for your unique needs and goals</p>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-8 mb-10">
             <div className="bg-white rounded-3xl p-8 shadow-sm">
               <h3 className="text-2xl font-serif font-light text-gray-800 mb-5">What to Expect</h3>
               <ul className="space-y-3 text-sm text-gray-700">
-                {["Comprehensive movement assessment","Personalised exercise programming","Hands-on guidance & coaching","Flexible scheduling"].map((t,i)=><li key={i} className="flex items-start gap-3"><Check size={18} style={{color:ROSE_D}} className="mt-0.5 flex-shrink-0"/><span>{t}</span></li>)}
+                {["Comprehensive movement assessment","Personalised exercise programming","Hands-on guidance & coaching","Flexible scheduling","Max 2 people per session","Free body analysis included"].map((t,i)=><li key={i} className="flex items-start gap-3"><Check size={18} style={{color:ROSE_D}} className="mt-0.5 flex-shrink-0"/><span>{t}{i===5&&<span className="ml-1 text-xs font-medium px-2 py-0.5 rounded-full" style={{background:"#e8ddd0",color:ROSE_D}}>FREE</span>}</span></li>)}
               </ul>
             </div>
             <div className="bg-white rounded-3xl p-8 shadow-sm">
-              <h3 className="text-2xl font-serif font-light text-gray-800 mb-5">Pricing</h3>
+              <h3 className="text-2xl font-serif font-light text-gray-800 mb-2">Pricing</h3>
+              <p className="text-xs text-gray-400 mb-5 flex items-center gap-1">
+                <Check size={12} style={{color:ROSE_D}}/> All packages include a free body analysis
+              </p>
               <div className="space-y-4">
-                {[["Single Session","£35","60 minutes"],["5 Session Package","£165","Save £10"],["10 Session Package","£315","Save £35"]].map(([l,p,s],i,arr)=>(
-                  <div key={i} className="pb-4" style={i<arr.length-1?{borderBottom:`1px solid #e8ddd0`}:{}}><div className="flex justify-between items-baseline mb-1"><span className="text-gray-700 font-medium text-sm">{l}</span><span className="text-xl text-gray-800">{p}</span></div><p className="text-xs text-gray-400">{s}</p></div>
+                {packages.map(({price,label,sub,highlight},i,arr)=>(
+                  <div key={i} className={`py-4 ${highlight?"px-4 -mx-4 rounded-2xl":""}`} style={{
+                    ...(highlight?{background:BEIGE_L}:{}),
+                    ...(!highlight&&i<arr.length-1?{borderBottom:`1px solid #e8ddd0`}:{})
+                  }}>
+                    <div className="flex justify-between items-baseline mb-1">
+                      <span className="text-gray-700 font-medium text-sm">{label}</span>
+                      <span className="text-xl text-gray-800">{price}</span>
+                    </div>
+                    <p className="text-xs text-gray-400">{sub}</p>
+                    {highlight&&<span className="inline-block mt-2 text-xs font-semibold tracking-widest px-2 py-0.5 rounded-full" style={{background:"#e8ddd0",color:ROSE_D}}>POPULAR</span>}
+                  </div>
                 ))}
               </div>
             </div>
           </div>
+          <div className="mb-10 rounded-2xl px-6 py-4 flex items-center gap-4" style={{background:"#e8ddd0"}}>
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 bg-white">
+              <Sparkles size={20} style={{color:ROSE_D}}/>
+            </div>
+            <div>
+              <p className="text-sm font-medium text-gray-800">Free Body Analysis Included</p>
+              <p className="text-xs text-gray-500 mt-0.5">Every package comes with a complimentary body analysis session to tailor your programme to you.</p>
+            </div>
+          </div>
+
           <div className="bg-white rounded-3xl p-8 md:p-14 shadow-sm">
             <h2 className="text-3xl font-serif font-light text-gray-800 mb-10 text-center">Book Your Session</h2>
             {submitted?(
@@ -467,11 +407,7 @@ function Clients(){
     setDeleting(id);try{await fetch(`${API}/api/clients/${id}`,{method:"DELETE"});fetch_();}catch{alert("Failed.");}finally{setDeleting(null);}
   };
   const viewClientProfile=async id=>{
-    try{
-      const res=await fetch(`${API}/api/clients/${id}`);
-      const data=await res.json();
-      setViewClientDetails(data);
-    }catch{alert("Failed to load client details.");}
+    try{const res=await fetch(`${API}/api/clients/${id}`);const data=await res.json();setViewClientDetails(data);}catch{alert("Failed to load client details.");}
   };
   const filtered=clients.filter(c=>c.name?.toLowerCase().includes(search.toLowerCase())||c.email?.toLowerCase().includes(search.toLowerCase()));
   const ic="w-full px-3 py-2 rounded-xl border border-stone-200 outline-none text-sm bg-white";
@@ -505,34 +441,9 @@ function Clients(){
               <div className="bg-white rounded-3xl p-8 shadow-2xl w-full max-w-md mx-4">
                 <h2 className="text-2xl font-serif font-light text-gray-800 mb-6">Client Profile</h2>
                 <div className="space-y-3 text-sm">
-                  <div className="flex justify-between py-2" style={{borderBottom:`1px solid #e8ddd0`}}>
-                    <span className="text-gray-500">Client ID:</span>
-                    <span className="font-medium text-gray-800">#{viewClientDetails.id}</span>
-                  </div>
-                  <div className="flex justify-between py-2" style={{borderBottom:`1px solid #e8ddd0`}}>
-                    <span className="text-gray-500">Name:</span>
-                    <span className="font-medium text-gray-800">{viewClientDetails.name}</span>
-                  </div>
-                  <div className="flex justify-between py-2" style={{borderBottom:`1px solid #e8ddd0`}}>
-                    <span className="text-gray-500">Email:</span>
-                    <span className="font-medium text-gray-800">{viewClientDetails.email}</span>
-                  </div>
-                  <div className="flex justify-between py-2" style={{borderBottom:`1px solid #e8ddd0`}}>
-                    <span className="text-gray-500">Phone:</span>
-                    <span className="font-medium text-gray-800">{viewClientDetails.phone||"—"}</span>
-                  </div>
-                  <div className="flex justify-between py-2" style={{borderBottom:`1px solid #e8ddd0`}}>
-                    <span className="text-gray-500">Age:</span>
-                    <span className="font-medium text-gray-800">{viewClientDetails.age||"—"}</span>
-                  </div>
-                  <div className="flex justify-between py-2" style={{borderBottom:`1px solid #e8ddd0`}}>
-                    <span className="text-gray-500">Package:</span>
-                    <span className="font-medium capitalize text-gray-800">{viewClientDetails.package_type||"—"}</span>
-                  </div>
-                  <div className="flex justify-between py-2" style={{borderBottom:`1px solid #e8ddd0`}}>
-                    <span className="text-gray-500">Joined:</span>
-                    <span className="font-medium text-gray-800">{new Date(viewClientDetails.join_date).toLocaleDateString("en-GB")}</span>
-                  </div>
+                  {[["Client ID",`#${viewClientDetails.id}`],["Name",viewClientDetails.name],["Email",viewClientDetails.email],["Phone",viewClientDetails.phone||"—"],["Age",viewClientDetails.age||"—"],["Package",viewClientDetails.package_type||"—"],["Joined",viewClientDetails.join_date?new Date(viewClientDetails.join_date).toLocaleDateString("en-GB"):"—"]].map(([l,v])=>(
+                    <div key={l} className="flex justify-between py-2" style={{borderBottom:`1px solid #e8ddd0`}}><span className="text-gray-500">{l}:</span><span className="font-medium text-gray-800">{v}</span></div>
+                  ))}
                 </div>
                 <button onClick={()=>setViewClientDetails(null)} className="w-full mt-6 py-3 bg-stone-100 text-gray-700 rounded-full text-sm hover:bg-stone-200">Close</button>
               </div>
@@ -582,13 +493,7 @@ function Bookings(){
   useEffect(()=>{fetch_();},[]);
   const updateStatus=async(id,status)=>{try{const b=bookings.find(b=>b.id===id);await fetch(`${API}/api/bookings/${id}`,{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify({client_id:b.client_id,class_id:b.class_id,status})});fetch_();}catch{alert("Failed.");}};
   const del=async id=>{if(!confirm("Delete this booking?"))return;try{await fetch(`${API}/api/bookings/${id}`,{method:"DELETE"});fetch_();}catch{alert("Failed.");}};
-  const viewDetails=async id=>{
-    try{
-      const res=await fetch(`${API}/api/bookings/${id}`);
-      const data=await res.json();
-      setViewBooking(data);
-    }catch{alert("Failed to load booking details.");}
-  };
+  const viewDetails=async id=>{try{const res=await fetch(`${API}/api/bookings/${id}`);const data=await res.json();setViewBooking(data);}catch{alert("Failed to load booking details.");}};
   const ss={confirmed:{background:"#d1fae5",color:"#065f46"},waitlist:{background:"#fef9c3",color:"#713f12"},cancelled:{background:"#fee2e2",color:"#991b1b"},CONFIRMED:{background:"#d1fae5",color:"#065f46"},WAITLIST:{background:"#fef9c3",color:"#713f12"},CANCELLED:{background:"#fee2e2",color:"#991b1b"}};
   return(
     <div style={{background:BEIGE_L}} className="min-h-screen">
@@ -603,26 +508,9 @@ function Bookings(){
               <div className="bg-white rounded-3xl p-8 shadow-2xl w-full max-w-md mx-4">
                 <h2 className="text-2xl font-serif font-light text-gray-800 mb-6">Booking Details</h2>
                 <div className="space-y-3 text-sm">
-                  <div className="flex justify-between py-2" style={{borderBottom:`1px solid #e8ddd0`}}>
-                    <span className="text-gray-500">Booking ID:</span>
-                    <span className="font-medium text-gray-800">#{viewBooking.id}</span>
-                  </div>
-                  <div className="flex justify-between py-2" style={{borderBottom:`1px solid #e8ddd0`}}>
-                    <span className="text-gray-500">Client:</span>
-                    <span className="font-medium text-gray-800">{viewBooking.client_id}</span>
-                  </div>
-                  <div className="flex justify-between py-2" style={{borderBottom:`1px solid #e8ddd0`}}>
-                    <span className="text-gray-500">Class:</span>
-                    <span className="font-medium text-gray-800">{viewBooking.class_id}</span>
-                  </div>
-                  <div className="flex justify-between py-2" style={{borderBottom:`1px solid #e8ddd0`}}>
-                    <span className="text-gray-500">Status:</span>
-                    <span className="font-medium capitalize" style={{color:ROSE_D}}>{viewBooking.status}</span>
-                  </div>
-                  <div className="flex justify-between py-2" style={{borderBottom:`1px solid #e8ddd0`}}>
-                    <span className="text-gray-500">Booking Date:</span>
-                    <span className="font-medium text-gray-800">{new Date(viewBooking.booking_date).toLocaleDateString("en-GB")}</span>
-                  </div>
+                  {[["Booking ID",`#${viewBooking.id}`],["Client",viewBooking.client_id],["Class",viewBooking.class_id],["Status",viewBooking.status],["Date",viewBooking.booking_date?new Date(viewBooking.booking_date).toLocaleDateString("en-GB"):"—"]].map(([l,v])=>(
+                    <div key={l} className="flex justify-between py-2" style={{borderBottom:`1px solid #e8ddd0`}}><span className="text-gray-500">{l}:</span><span className="font-medium text-gray-800">{v}</span></div>
+                  ))}
                 </div>
                 <button onClick={()=>setViewBooking(null)} className="w-full mt-6 py-3 bg-stone-100 text-gray-700 rounded-full text-sm hover:bg-stone-200">Close</button>
               </div>
@@ -672,12 +560,21 @@ function Chatbot({forceOpen}){
   const suggestions=["Book a private session","Show classes","Check availability","How do waitlists work?"];
   useEffect(()=>{if(forceOpen)setOpen(true);},[forceOpen]);
   useEffect(()=>{endRef.current?.scrollIntoView({behavior:"smooth"});},[msgs]);
-  const send=async txt=>{
-    if(!txt.trim()||loading)return;
-    setMsgs(p=>[...p,{role:"user",content:txt}]);setInput("");setLoading(true);
-    await new Promise(r=>setTimeout(r,900));
-    setMsgs(p=>[...p,{role:"assistant",content:"Thanks for reaching out! For bookings or queries please email hello@onpilateslane.co.uk or use the booking form."}]);
-    setLoading(false);
+  const send = async txt => {
+    if (!txt.trim() || loading) return;
+    setMsgs(p => [...p, { role: "user", content: txt }]);
+    setInput(""); setLoading(true);
+    try {
+      const res = await fetch("https://glorious-halibut-jj5v9v9jrx6wfqxrg-8787.app.github.dev/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: txt })
+      });
+      const data = await res.json();
+      setMsgs(p => [...p, { role: "assistant", content: data.reply }]);
+    } catch {
+      setMsgs(p => [...p, { role: "assistant", content: "Sorry, something went wrong. Please email hello@onpilateslane.co.uk" }]);
+    } finally { setLoading(false); }
   };
   return(
     <>
