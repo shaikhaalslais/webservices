@@ -2,8 +2,10 @@ import { useState, useEffect, useRef } from "react";
 import { ArrowRight, Users, Heart, Sparkles, Menu, X, Instagram, Mail, MapPin, Check, Calendar, Clock, Search, UserPlus, GraduationCap, Target, MessageCircle, Send, Loader2, Eye } from "lucide-react";
 const BEIGE="$e8ddd0",BEIGE_L="#f5f0ea",ROSE="#3e2723",ROSE_D="#2e1a17";
 const API="https://glorious-halibut-jj5v9v9jrx6wfqxrg-8000.app.github.dev";
-const HEADERS = {"X-API-Key": "opl-secret-key-2026"};
-const HEADERS_JSON = {"Content-Type": "application/json", "X-API-Key": "opl-secret-key-2026"};
+const KEY = import.meta.env.VITE_API_KEY;
+const HEADERS = {"X-API-Key": KEY};
+const HEADERS_JSON = {"Content-Type": "application/json", "X-API-Key": KEY};
+
 function Navbar({currentPath,onNavigate}){
   const [scrolled,setScrolled]=useState(false);
   const [open,setOpen]=useState(false);

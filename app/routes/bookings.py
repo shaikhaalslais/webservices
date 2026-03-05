@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from app.auth import get_api_key
 from sqlalchemy.orm import Session
 from sqlalchemy import func
-from typing import List
+from typing import List, Literal
 from app.database import get_db
 from app.models import Booking, Client, PilatesClass, PrivateSessionRequest, Studio
 from app.schemas import BookingResponse, BookingCreate, ClientResponse, ClientCreate, ClassResponse, PrivateSessionResponse, PrivateSessionCreate
@@ -16,13 +16,13 @@ router = APIRouter(
 # booking endpoints (CRUD)
 
 # get all bookings
-@router.get("/bookings", response_model=List[BookingResponse])
+@router.get("/bookings", response_model=List[BookingResponse], status_code=status.HTTP_200_OK)
 def get_all_bookings(db: Session = Depends(get_db)):
     bookings = db.query(Booking).all()
     return bookings
 
  # get a specific booking by ID
-@router.get("/bookings/{booking_id}", response_model=BookingResponse)
+@router.get("/bookings/{booking_id}", response_model=BookingResponse, status_code=status.HTTP_200_OK)
 def get_booking(booking_id: int, db: Session = Depends(get_db)):
     booking = db.query(Booking).filter(Booking.id == booking_id).first()
     if not booking:
@@ -55,7 +55,7 @@ def create_booking(booking: BookingCreate, db: Session = Depends(get_db)):
     booked_count = db.query(func.count(Booking.id)).filter(
         Booking.class_id == booking.class_id,
         Booking.status == "confirmed"
-    ).scalar()
+    ).scalar() or 0
     
     if booked_count >= pilates_class.capacity:
         # Auto-set to waitlist if full
@@ -70,7 +70,7 @@ def create_booking(booking: BookingCreate, db: Session = Depends(get_db)):
     return new_booking
 
 # update an existing booking
-@router.put("/bookings/{booking_id}", response_model=BookingResponse)
+@router.put("/bookings/{booking_id}", response_model=BookingResponse, status_code=status.HTTP_200_OK)
 def update_booking(booking_id: int, booking_update: BookingCreate, db: Session = Depends(get_db)):
 
     booking = db.query(Booking).filter(Booking.id == booking_id).first()
@@ -78,6 +78,20 @@ def update_booking(booking_id: int, booking_update: BookingCreate, db: Session =
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Booking with id {booking_id} not found"
+        )
+
+    client = db.query(Client).filter(Client.id == booking_update.client_id).first()
+    if not client:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Client with id {booking_update.client_id} not found"
+        )
+
+    pilates_class = db.query(PilatesClass).filter(PilatesClass.id == booking_update.class_id).first()
+    if not pilates_class:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Class with id {booking_update.class_id} not found"
         )
     
     # Update fields
@@ -108,14 +122,14 @@ def delete_booking(booking_id: int, db: Session = Depends(get_db)):
 # Class endpoints
 
 # get all pilates classes
-@router.get("/classes", response_model=List[ClassResponse])
+@router.get("/classes", response_model=List[ClassResponse], status_code=status.HTTP_200_OK)
 def get_all_classes(db: Session = Depends(get_db)):
     classes = db.query(PilatesClass).all()
     return classes
 
 # check how many spots are available in a class
 # returns: capacity, booked count, and available spots
-@router.get("/classes/{class_id}/availability")
+@router.get("/classes/{class_id}/availability", status_code=status.HTTP_200_OK)
 def check_class_availability(class_id: int, db: Session = Depends(get_db)):
     
     pilates_class = db.query(PilatesClass).filter(PilatesClass.id == class_id).first()
@@ -129,7 +143,7 @@ def check_class_availability(class_id: int, db: Session = Depends(get_db)):
     booked_count = db.query(func.count(Booking.id)).filter(
         Booking.class_id == class_id,
         Booking.status == "confirmed"
-    ).scalar()
+    ).scalar() or 0
     
     available = pilates_class.capacity - booked_count
     
@@ -138,7 +152,7 @@ def check_class_availability(class_id: int, db: Session = Depends(get_db)):
         "class_name": pilates_class.name,
         "capacity": pilates_class.capacity,
         "booked": booked_count,
-        "available_spots": available,
+        "available_spots": max(available, 0),
         "is_full": available <= 0
     }
 
@@ -153,7 +167,7 @@ def create_client(client: ClientCreate, db: Session = Depends(get_db)):
     existing_client = db.query(Client).filter(Client.email == client.email).first()
     if existing_client:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
+            status_code=status.HTTP_409_CONFLICT,
             detail=f"Client with email {client.email} already exists"
         )
     
@@ -167,7 +181,7 @@ def create_client(client: ClientCreate, db: Session = Depends(get_db)):
 
 
 # read a specific client by ID
-@router.get("/clients/{client_id}", response_model=ClientResponse)
+@router.get("/clients/{client_id}", response_model=ClientResponse, status_code=status.HTTP_200_OK)
 def get_client(client_id: int, db: Session = Depends(get_db)):
   
     client = db.query(Client).filter(Client.id == client_id).first()
@@ -179,7 +193,7 @@ def get_client(client_id: int, db: Session = Depends(get_db)):
     return client
 
 # read all clients
-@router.get("/clients", response_model=List[ClientResponse])
+@router.get("/clients", response_model=List[ClientResponse], status_code=status.HTTP_200_OK)
 def get_all_clients(db: Session = Depends(get_db)):
 
     clients = db.query(Client).all()
@@ -187,7 +201,7 @@ def get_all_clients(db: Session = Depends(get_db)):
 
 
 # update an existing client
-@router.put("/clients/{client_id}", response_model=ClientResponse)
+@router.put("/clients/{client_id}", response_model=ClientResponse, status_code=status.HTTP_200_OK)
 def update_client(client_id: int, client_update: ClientCreate, db: Session = Depends(get_db)):
 
     # Find the client
@@ -206,7 +220,7 @@ def update_client(client_id: int, client_update: ClientCreate, db: Session = Dep
         ).first()
         if existing:
             raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
+                status_code=status.HTTP_409_CONFLICT,
                 detail=f"Email {client_update.email} already in use by another client"
             )
     
@@ -251,7 +265,7 @@ def create_private_session_request(session: PrivateSessionCreate, db: Session = 
 
 
 # Get all private session requests
-@router.get("/private-sessions", response_model=List[PrivateSessionResponse])
+@router.get("/private-sessions", response_model=List[PrivateSessionResponse], status_code=status.HTTP_200_OK)
 def get_all_private_sessions(db: Session = Depends(get_db)):
     
     requests = db.query(PrivateSessionRequest).all()
@@ -259,7 +273,7 @@ def get_all_private_sessions(db: Session = Depends(get_db)):
 
 
 # Get a specific private session request
-@router.get("/private-sessions/{request_id}", response_model=PrivateSessionResponse)
+@router.get("/private-sessions/{request_id}", response_model=PrivateSessionResponse, status_code=status.HTTP_200_OK)
 def get_private_session(request_id: int, db: Session = Depends(get_db)):
     
     request = db.query(PrivateSessionRequest).filter(PrivateSessionRequest.id == request_id).first()
@@ -272,8 +286,8 @@ def get_private_session(request_id: int, db: Session = Depends(get_db)):
 
 
 # Update private session status (approve/reject)
-@router.put("/private-sessions/{request_id}", response_model=PrivateSessionResponse)
-def update_private_session_status(request_id: int, status_update: str, db: Session = Depends(get_db)):
+@router.put("/private-sessions/{request_id}", response_model=PrivateSessionResponse, status_code=status.HTTP_200_OK)
+def update_private_session_status(request_id: int, status_update: Literal["pending", "approved", "rejected"], db: Session = Depends(get_db)):
     
     request = db.query(PrivateSessionRequest).filter(PrivateSessionRequest.id == request_id).first()
     if not request:
@@ -306,7 +320,7 @@ def delete_private_session(request_id: int, db: Session = Depends(get_db)):
 
 
 # Studios endpoint
-@router.get("/studios")
+@router.get("/studios", status_code=status.HTTP_200_OK)
 def get_all_studios(db: Session = Depends(get_db)):
     studios = db.query(Studio).all()
     return studios

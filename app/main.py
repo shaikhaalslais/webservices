@@ -1,6 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.routes import bookings
+from dotenv import load_dotenv
+load_dotenv()
 
 # Create FastAPI application instance
 app = FastAPI(
@@ -34,11 +36,8 @@ def root():
         "endpoints": {
             "bookings": "/api/bookings",
             "classes": "/api/classes",
-            "clients": "/api/clients"
+            "clients": "/api/clients",
+            "studios": "/api/studios",
+            "private_sessions": "/api/private-sessions"
         }
     }
-
-# Health check endpoint
-@app.get("/health")
-def health_check():
-    return {"status": "healthy", "database": "connected"}

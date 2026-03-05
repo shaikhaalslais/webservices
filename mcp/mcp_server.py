@@ -3,9 +3,15 @@ import httpx
 from mcp.server import Server
 from mcp.server.stdio import stdio_server
 from mcp import types
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
 
 app = Server("pilates-booking-api")
 API_BASE_URL = "http://127.0.0.1:8000"
+API_HEADERS = {"X-API-Key": os.getenv("API_KEY")}
+
 
 
 @app.list_tools()
@@ -357,286 +363,126 @@ async def call_tool(name: str, arguments: dict) -> list[types.TextContent]:
     async with httpx.AsyncClient() as client:
         try:
             if name == "get_all_bookings":
-                response = await client.get(f"{API_BASE_URL}/api/bookings")
+                response = await client.get(f"{API_BASE_URL}/api/bookings", headers=API_HEADERS)
                 response.raise_for_status()
                 data = response.json()
-                
-                return [types.TextContent(
-                    type="text",
-                    text=f"Found {len(data)} bookings:\n{data}"
-                )]
+                return [types.TextContent(type="text", text=f"Found {len(data)} bookings:\n{data}")]
             
             elif name == "get_booking_details":
                 booking_id = arguments.get("booking_id")
-                response = await client.get(f"{API_BASE_URL}/api/bookings/{booking_id}")
+                response = await client.get(f"{API_BASE_URL}/api/bookings/{booking_id}", headers=API_HEADERS)
                 response.raise_for_status()
                 data = response.json()
-                
-                return [types.TextContent(
-                    type="text",
-                    text=f"Booking Details:\n"
-                         f"Booking ID: {data.get('id')}\n"
-                         f"Client ID: {data.get('client_id')}\n"
-                         f"Class ID: {data.get('class_id')}\n"
-                         f"Status: {data.get('status')}\n"
-                         f"Booking Date: {data.get('booking_date')}"
-                )]
+                return [types.TextContent(type="text", text=f"Booking Details:\nBooking ID: {data.get('id')}\nClient ID: {data.get('client_id')}\nClass ID: {data.get('class_id')}\nStatus: {data.get('status')}\nBooking Date: {data.get('booking_date')}")]
             
             elif name == "create_booking":
-                response = await client.post(
-                    f"{API_BASE_URL}/api/bookings",
-                    json=arguments
-                )
+                response = await client.post(f"{API_BASE_URL}/api/bookings", json=arguments, headers=API_HEADERS)
                 response.raise_for_status()
                 data = response.json()
-                
-                return [types.TextContent(
-                    type="text",
-                    text=f"Booking created successfully!\n"
-                         f"Booking ID: {data.get('id')}\n"
-                         f"Client ID: {data.get('client_id')}\n"
-                         f"Class ID: {data.get('class_id')}\n"
-                         f"Status: {data.get('status')}\n"
-                         f"Booking Date: {data.get('booking_date')}"
-                )]
+                return [types.TextContent(type="text", text=f"Booking created successfully!\nBooking ID: {data.get('id')}\nClient ID: {data.get('client_id')}\nClass ID: {data.get('class_id')}\nStatus: {data.get('status')}\nBooking Date: {data.get('booking_date')}")]
             
             elif name == "update_booking":
                 booking_id = arguments.pop("booking_id")
-                response = await client.put(
-                    f"{API_BASE_URL}/api/bookings/{booking_id}",
-                    json=arguments
-                )
+                response = await client.put(f"{API_BASE_URL}/api/bookings/{booking_id}", json=arguments, headers=API_HEADERS)
                 response.raise_for_status()
                 data = response.json()
-                
-                return [types.TextContent(
-                    type="text",
-                    text=f"Booking updated successfully!\n"
-                         f"Booking ID: {data.get('id')}\n"
-                         f"Status: {data.get('status')}"
-                )]
+                return [types.TextContent(type="text", text=f"Booking updated successfully!\nBooking ID: {data.get('id')}\nStatus: {data.get('status')}")]
             
             elif name == "delete_booking":
                 booking_id = arguments.get("booking_id")
-                response = await client.delete(
-                    f"{API_BASE_URL}/api/bookings/{booking_id}"
-                )
+                response = await client.delete(f"{API_BASE_URL}/api/bookings/{booking_id}", headers=API_HEADERS)
                 response.raise_for_status()
-                
-                return [types.TextContent(
-                    type="text",
-                    text=f"Booking {booking_id} deleted successfully!"
-                )]
+                return [types.TextContent(type="text", text=f"Booking {booking_id} deleted successfully!")]
             
             elif name == "get_all_classes":
-                response = await client.get(f"{API_BASE_URL}/api/classes")
+                response = await client.get(f"{API_BASE_URL}/api/classes", headers=API_HEADERS)
                 response.raise_for_status()
                 data = response.json()
-                
-                return [types.TextContent(
-                    type="text",
-                    text=f"Found {len(data)} Pilates classes:\n{data}"
-                )]
+                return [types.TextContent(type="text", text=f"Found {len(data)} Pilates classes:\n{data}")]
             
             elif name == "check_class_availability":
                 class_id = arguments.get("class_id")
-                response = await client.get(
-                    f"{API_BASE_URL}/api/classes/{class_id}/availability"
-                )
+                response = await client.get(f"{API_BASE_URL}/api/classes/{class_id}/availability", headers=API_HEADERS)
                 response.raise_for_status()
                 data = response.json()
-                
-                return [types.TextContent(
-                    type="text",
-                    text=f"Class Availability:\n"
-                         f"Class: {data['class_name']}\n"
-                         f"Capacity: {data['capacity']} total spots\n"
-                         f"Booked: {data['booked']} confirmed bookings\n"
-                         f"Available: {data['available_spots']} spots remaining\n"
-                         f"Status: {'FULL' if data['is_full'] else 'OPEN'}"
-                )]
+                return [types.TextContent(type="text", text=f"Class Availability:\nClass: {data['class_name']}\nCapacity: {data['capacity']} total spots\nBooked: {data['booked']} confirmed bookings\nAvailable: {data['available_spots']} spots remaining\nStatus: {'FULL' if data['is_full'] else 'OPEN'}")]
             
             elif name == "get_all_clients":
-                response = await client.get(f"{API_BASE_URL}/api/clients")
+                response = await client.get(f"{API_BASE_URL}/api/clients", headers=API_HEADERS)
                 response.raise_for_status()
                 data = response.json()
-                
-                return [types.TextContent(
-                    type="text",
-                    text=f"Found {len(data)} registered clients:\n{data}"
-                )]
+                return [types.TextContent(type="text", text=f"Found {len(data)} registered clients:\n{data}")]
             
             elif name == "get_client_details":
                 client_id = arguments.get("client_id")
-                response = await client.get(f"{API_BASE_URL}/api/clients/{client_id}")
+                response = await client.get(f"{API_BASE_URL}/api/clients/{client_id}", headers=API_HEADERS)
                 response.raise_for_status()
                 data = response.json()
-                
-                return [types.TextContent(
-                    type="text",
-                    text=f"Client Details:\n"
-                         f"Client ID: {data.get('id')}\n"
-                         f"Name: {data.get('name')}\n"
-                         f"Email: {data.get('email')}\n"
-                         f"Phone: {data.get('phone', 'Not provided')}\n"
-                         f"Age: {data.get('age', 'Not provided')}\n"
-                         f"Package: {data.get('package_type', 'Not specified')}\n"
-                         f"Join Date: {data.get('join_date')}"
-                )]
+                return [types.TextContent(type="text", text=f"Client Details:\nClient ID: {data.get('id')}\nName: {data.get('name')}\nEmail: {data.get('email')}\nPhone: {data.get('phone', 'Not provided')}\nAge: {data.get('age', 'Not provided')}\nPackage: {data.get('package_type', 'Not specified')}\nJoin Date: {data.get('join_date')}")]
             
             elif name == "create_client":
-                response = await client.post(
-                    f"{API_BASE_URL}/api/clients",
-                    json=arguments
-                )
+                response = await client.post(f"{API_BASE_URL}/api/clients", json=arguments, headers=API_HEADERS)
                 response.raise_for_status()
                 data = response.json()
-                
-                return [types.TextContent(
-                    type="text",
-                    text=f"Client created successfully!\n"
-                         f"Client ID: {data.get('id')}\n"
-                         f"Name: {data.get('name')}\n"
-                         f"Email: {data.get('email')}\n"
-                         f"Phone: {data.get('phone', 'Not provided')}\n"
-                         f"Age: {data.get('age', 'Not provided')}\n"
-                         f"Package: {data.get('package_type', 'Not specified')}\n"
-                         f"Join Date: {data.get('join_date')}"
-                )]
+                return [types.TextContent(type="text", text=f"Client created successfully!\nClient ID: {data.get('id')}\nName: {data.get('name')}\nEmail: {data.get('email')}\nPhone: {data.get('phone', 'Not provided')}\nAge: {data.get('age', 'Not provided')}\nPackage: {data.get('package_type', 'Not specified')}\nJoin Date: {data.get('join_date')}")]
             
             elif name == "update_client":
                 client_id = arguments.pop("client_id")
-                response = await client.put(
-                    f"{API_BASE_URL}/api/clients/{client_id}",
-                    json=arguments
-                )
+                response = await client.put(f"{API_BASE_URL}/api/clients/{client_id}", json=arguments, headers=API_HEADERS)
                 response.raise_for_status()
                 data = response.json()
-                
-                return [types.TextContent(
-                    type="text",
-                    text=f"Client updated successfully!\n"
-                         f"Client ID: {data.get('id')}\n"
-                         f"Name: {data.get('name')}\n"
-                         f"Email: {data.get('email')}\n"
-                         f"Phone: {data.get('phone', 'Not provided')}\n"
-                         f"Age: {data.get('age', 'Not provided')}\n"
-                         f"Package: {data.get('package_type', 'Not specified')}"
-                )]
+                return [types.TextContent(type="text", text=f"Client updated successfully!\nClient ID: {data.get('id')}\nName: {data.get('name')}\nEmail: {data.get('email')}\nPhone: {data.get('phone', 'Not provided')}\nAge: {data.get('age', 'Not provided')}\nPackage: {data.get('package_type', 'Not specified')}")]
             
             elif name == "delete_client":
                 client_id = arguments.get("client_id")
-                response = await client.delete(
-                    f"{API_BASE_URL}/api/clients/{client_id}"
-                )
+                response = await client.delete(f"{API_BASE_URL}/api/clients/{client_id}", headers=API_HEADERS)
                 response.raise_for_status()
-                
-                return [types.TextContent(
-                    type="text",
-                    text=f"Client {client_id} deleted successfully!\n"
-                         f"Note: All bookings for this client were also deleted."
-                )]
+                return [types.TextContent(type="text", text=f"Client {client_id} deleted successfully!\nNote: All bookings for this client were also deleted.")]
             
             elif name == "get_all_studios":
-                response = await client.get(f"{API_BASE_URL}/api/studios")
+                response = await client.get(f"{API_BASE_URL}/api/studios", headers=API_HEADERS)
                 response.raise_for_status()
                 data = response.json()
-                
-                return [types.TextContent(
-                    type="text",
-                    text=f"Found {len(data)} Leeds leisure centres:\n{data}"
-                )]
+                return [types.TextContent(type="text", text=f"Found {len(data)} Leeds leisure centres:\n{data}")]
             
             elif name == "get_private_sessions":
-                response = await client.get(f"{API_BASE_URL}/api/private-sessions")
+                response = await client.get(f"{API_BASE_URL}/api/private-sessions", headers=API_HEADERS)
                 response.raise_for_status()
                 data = response.json()
-                
-                return [types.TextContent(
-                    type="text",
-                    text=f"Found {len(data)} private session requests:\n{data}"
-                )]
+                return [types.TextContent(type="text", text=f"Found {len(data)} private session requests:\n{data}")]
             
             elif name == "get_private_session_details":
                 session_id = arguments.get("session_id")
-                response = await client.get(f"{API_BASE_URL}/api/private-sessions/{session_id}")
+                response = await client.get(f"{API_BASE_URL}/api/private-sessions/{session_id}", headers=API_HEADERS)
                 response.raise_for_status()
                 data = response.json()
-                
-                return [types.TextContent(
-                    type="text",
-                    text=f"Private Session Details:\n"
-                         f"Request ID: {data.get('id')}\n"
-                         f"Name: {data.get('name')}\n"
-                         f"Email: {data.get('email')}\n"
-                         f"Phone: {data.get('phone')}\n"
-                         f"Preferred Date: {data.get('preferred_date')}\n"
-                         f"Preferred Time: {data.get('preferred_time')}\n"
-                         f"Experience: {data.get('experience', 'Not specified')}\n"
-                         f"Goals: {data.get('goals', 'Not specified')}\n"
-                         f"Status: {data.get('status')}\n"
-                         f"Submitted: {data.get('created_at')}"
-                )]
+                return [types.TextContent(type="text", text=f"Private Session Details:\nRequest ID: {data.get('id')}\nName: {data.get('name')}\nEmail: {data.get('email')}\nPhone: {data.get('phone')}\nPreferred Date: {data.get('preferred_date')}\nPreferred Time: {data.get('preferred_time')}\nExperience: {data.get('experience', 'Not specified')}\nGoals: {data.get('goals', 'Not specified')}\nStatus: {data.get('status')}\nSubmitted: {data.get('created_at')}")]
             
             elif name == "create_private_session":
-                response = await client.post(
-                    f"{API_BASE_URL}/api/private-sessions",
-                    json=arguments
-                )
+                response = await client.post(f"{API_BASE_URL}/api/private-sessions", json=arguments, headers=API_HEADERS)
                 response.raise_for_status()
                 data = response.json()
-                
-                return [types.TextContent(
-                    type="text",
-                    text=f"Private session request created!\n"
-                         f"Request ID: {data.get('id')}\n"
-                         f"Name: {data.get('name')}\n"
-                         f"Preferred Date: {data.get('preferred_date')}\n"
-                         f"Preferred Time: {data.get('preferred_time')}\n"
-                         f"Status: {data.get('status')}"
-                )]
+                return [types.TextContent(type="text", text=f"Private session request created!\nRequest ID: {data.get('id')}\nName: {data.get('name')}\nPreferred Date: {data.get('preferred_date')}\nPreferred Time: {data.get('preferred_time')}\nStatus: {data.get('status')}")]
             
             elif name == "update_private_session_status":
                 session_id = arguments.get("session_id")
                 status = arguments.get("status")
-                response = await client.put(
-                    f"{API_BASE_URL}/api/private-sessions/{session_id}",
-                    params={"status_update": status}
-                )
+                response = await client.put(f"{API_BASE_URL}/api/private-sessions/{session_id}", params={"status_update": status}, headers=API_HEADERS)
                 response.raise_for_status()
                 data = response.json()
-                
-                return [types.TextContent(
-                    type="text",
-                    text=f"Private session status updated!\n"
-                         f"Request ID: {data.get('id')}\n"
-                         f"New Status: {data.get('status')}"
-                )]
+                return [types.TextContent(type="text", text=f"Private session status updated!\nRequest ID: {data.get('id')}\nNew Status: {data.get('status')}")]
             
             elif name == "delete_private_session":
                 session_id = arguments.get("session_id")
-                response = await client.delete(
-                    f"{API_BASE_URL}/api/private-sessions/{session_id}"
-                )
+                response = await client.delete(f"{API_BASE_URL}/api/private-sessions/{session_id}", headers=API_HEADERS)
                 response.raise_for_status()
-                
-                return [types.TextContent(
-                    type="text",
-                    text=f"Private session request {session_id} deleted successfully!"
-                )]
+                return [types.TextContent(type="text", text=f"Private session request {session_id} deleted successfully!")]
             
             else:
-                return [types.TextContent(
-                    type="text",
-                    text=f"Error: Unknown tool '{name}' requested"
-                )]
+                return [types.TextContent(type="text", text=f"Error: Unknown tool '{name}' requested")]
         
         except httpx.HTTPError as e:
-            return [types.TextContent(
-                type="text",
-                text=f"API Error: {str(e)}\n"
-                     f"Make sure FastAPI server is running at {API_BASE_URL}"
-            )]
+            return [types.TextContent(type="text", text=f"API Error: {str(e)}\nMake sure FastAPI server is running at {API_BASE_URL}")]
 
 
 async def main():
