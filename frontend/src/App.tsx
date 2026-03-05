@@ -1,9 +1,9 @@
 import { useState, useEffect, useRef } from "react";
 import { ArrowRight, Users, Heart, Sparkles, Menu, X, Instagram, Mail, MapPin, Check, Calendar, Clock, Search, UserPlus, GraduationCap, Target, MessageCircle, Send, Loader2, Eye } from "lucide-react";
-
 const BEIGE="$e8ddd0",BEIGE_L="#f5f0ea",ROSE="#3e2723",ROSE_D="#2e1a17";
 const API="https://glorious-halibut-jj5v9v9jrx6wfqxrg-8000.app.github.dev";
-
+const HEADERS = {"X-API-Key": "opl-secret-key-2026"};
+const HEADERS_JSON = {"Content-Type": "application/json", "X-API-Key": "opl-secret-key-2026"};
 function Navbar({currentPath,onNavigate}){
   const [scrolled,setScrolled]=useState(false);
   const [open,setOpen]=useState(false);
@@ -27,7 +27,6 @@ function Navbar({currentPath,onNavigate}){
     </nav>
   );
 }
-
 function Footer(){
   return(
     <footer style={{background:BEIGE_L,borderTop:`1px solid #e8ddd0`}}>
@@ -42,7 +41,6 @@ function Footer(){
     </footer>
   );
 }
-
 function Home({onNavigate,onOpenChat}){
   const testimonials=[
     {text:"Bibi's sessions changed the way I move. I feel so much more in tune with my body.",author:"Sarah M.",location:"Leeds"},
@@ -103,7 +101,6 @@ function Home({onNavigate,onOpenChat}){
     </div>
   );
 }
-
 function About(){
   const values=[[Heart,"Mindful Movement","Every exercise is an opportunity to connect with your body."],[GraduationCap,"Thoughtful Teaching","Instruction that's careful, considered, and tailored to how you move."],[Sparkles,"Individual Focus","Personalised attention to help you achieve your unique goals."],[Target,"Sustainable Practice","Building strength and flexibility that supports your daily life."]];
   return(
@@ -146,7 +143,6 @@ function About(){
     </div>
   );
 }
-
 function Classes(){
   const [classes,setClasses]=useState([]);
   const [clients,setClients]=useState([]);
@@ -163,7 +159,10 @@ function Classes(){
   useEffect(()=>{
     const loadInitial=async()=>{
       try{
-        const[cl,st]=await Promise.all([fetch(`${API}/api/clients`).then(r=>r.json()),fetch(`${API}/api/studios`).then(r=>r.json())]);
+        const[cl,st]=await Promise.all([
+          fetch(`${API}/api/clients`,{headers:HEADERS}).then(r=>r.json()),
+          fetch(`${API}/api/studios`,{headers:HEADERS}).then(r=>r.json())
+        ]);
         setClients(cl);setStudios(st);
       }catch(e){console.error(e);}
     };loadInitial();
@@ -173,10 +172,10 @@ function Classes(){
     const loadClasses=async()=>{
       setLoading(true);
       try{
-        const cr=await fetch(`${API}/api/classes`).then(r=>r.json());
+        const cr=await fetch(`${API}/api/classes`,{headers:HEADERS}).then(r=>r.json());
         setClasses(cr);
         const av={};
-        await Promise.all(cr.map(async c=>{try{const r=await fetch(`${API}/api/classes/${c.id}/availability`);av[c.id]=await r.json();}catch{}}));
+        await Promise.all(cr.map(async c=>{try{const r=await fetch(`${API}/api/classes/${c.id}/availability`,{headers:HEADERS});av[c.id]=await r.json();}catch{}}));
         setAvail(av);
       }catch(e){console.error(e);}finally{setLoading(false);}
     };loadClasses();
@@ -185,11 +184,11 @@ function Classes(){
     if(!clientId){setBookMsg("Please select a client.");return;}
     setBooking(true);setBookMsg("");
     try{
-      const res=await fetch(`${API}/api/bookings`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({client_id:parseInt(clientId),class_id:bookingClass.id,status:"confirmed"})});
+      const res=await fetch(`${API}/api/bookings`,{method:"POST",headers:HEADERS_JSON,body:JSON.stringify({client_id:parseInt(clientId),class_id:bookingClass.id,status:"confirmed"})});
       const data=await res.json();
       if(!res.ok){setBookMsg(data.detail||"Booking failed.");return;}
       setBookMsg(data.status==="waitlist"?"Added to waitlist!":"Booking confirmed! ✓");
-      const r=await fetch(`${API}/api/classes/${bookingClass.id}/availability`);
+      const r=await fetch(`${API}/api/classes/${bookingClass.id}/availability`,{headers:HEADERS});
       const newAv=await r.json();
       setAvail(p=>({...p,[bookingClass.id]:newAv}));
       setTimeout(()=>{setBookingClass(null);setBookMsg("");setClientId("");},2000);
@@ -283,7 +282,6 @@ function Classes(){
     </div>
   );
 }
-
 function Private(){
   const [submitted,setSubmitted]=useState(false);
   const [form,setForm]=useState({name:"",email:"",phone:"",preferredDate:"",preferredTime:"",experience:"",goals:"",injuries:""});
@@ -291,20 +289,18 @@ function Private(){
   const hs=async()=>{
     if(!form.name||!form.email||!form.phone||!form.preferredDate||!form.preferredTime)return;
     try{
-      const res=await fetch(`${API}/api/private-sessions`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({name:form.name,email:form.email,phone:form.phone,preferred_date:form.preferredDate,preferred_time:form.preferredTime,experience:form.experience,goals:form.goals,injuries:form.injuries})});
+      const res=await fetch(`${API}/api/private-sessions`,{method:"POST",headers:HEADERS_JSON,body:JSON.stringify({name:form.name,email:form.email,phone:form.phone,preferred_date:form.preferredDate,preferred_time:form.preferredTime,experience:form.experience,goals:form.goals,injuries:form.injuries})});
       if(!res.ok){const error=await res.json();alert(error.detail||"Failed to submit request");return;}
       setSubmitted(true);
       setTimeout(()=>{setSubmitted(false);setForm({name:"",email:"",phone:"",preferredDate:"",preferredTime:"",experience:"",goals:"",injuries:""});},3000);
     }catch(err){console.error(err);alert("Failed to submit. Please try again.");}
   };
   const ic="w-full px-4 py-3 rounded-xl border border-stone-200 outline-none text-sm bg-white";
-
   const packages=[
     {sessions:1,price:"£25",label:"Single Session",sub:"60 minutes · max 2 people",highlight:false},
     {sessions:3,price:"£65",label:"3 Session Package",sub:"Save £10 · max 2 people per session",highlight:false},
     {sessions:5,price:"£105",label:"5 Session Package",sub:"Save £20 · max 2 people per session",highlight:true},
   ];
-
   return(
     <div style={{background:BEIGE_L}} className="min-h-screen">
       <section className="py-24 px-6">
@@ -314,7 +310,6 @@ function Private(){
             <h1 className="text-6xl font-serif font-light text-gray-800 mb-6">Private Sessions</h1>
             <p className="text-gray-500">Tailored instruction for your unique needs and goals</p>
           </div>
-
           <div className="grid md:grid-cols-2 gap-8 mb-10">
             <div className="bg-white rounded-3xl p-8 shadow-sm">
               <h3 className="text-2xl font-serif font-light text-gray-800 mb-5">What to Expect</h3>
@@ -353,7 +348,6 @@ function Private(){
               <p className="text-xs text-gray-500 mt-0.5">Every package comes with a complimentary body analysis session to tailor your programme to you.</p>
             </div>
           </div>
-
           <div className="bg-white rounded-3xl p-8 md:p-14 shadow-sm">
             <h2 className="text-3xl font-serif font-light text-gray-800 mb-10 text-center">Book Your Session</h2>
             {submitted?(
@@ -380,7 +374,6 @@ function Private(){
     </div>
   );
 }
-
 function Clients(){
   const [clients,setClients]=useState([]);
   const [search,setSearch]=useState("");
@@ -391,23 +384,23 @@ function Clients(){
   const [deleting,setDeleting]=useState(null);
   const [viewClientDetails,setViewClientDetails]=useState(null);
   const [newClient,setNewClient]=useState({name:"",email:"",phone:"",age:"",package_type:""});
-  const fetch_=async()=>{try{setLoading(true);const r=await fetch(`${API}/api/clients`);if(!r.ok)throw new Error();setClients(await r.json());setError(null);}catch{setError("Could not connect to backend.");}finally{setLoading(false);}};
+  const fetch_=async()=>{try{setLoading(true);const r=await fetch(`${API}/api/clients`,{headers:HEADERS});if(!r.ok)throw new Error();setClients(await r.json());setError(null);}catch{setError("Could not connect to backend.");}finally{setLoading(false);}};
   useEffect(()=>{fetch_();},[]);
   const handleSave=async()=>{
     if(!newClient.name||!newClient.email)return;
     try{
       const url=editClient?`${API}/api/clients/${editClient.id}`:`${API}/api/clients`;
-      const res=await fetch(url,{method:editClient?"PUT":"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({...newClient,age:newClient.age?parseInt(newClient.age):null})});
+      const res=await fetch(url,{method:editClient?"PUT":"POST",headers:HEADERS_JSON,body:JSON.stringify({...newClient,age:newClient.age?parseInt(newClient.age):null})});
       if(!res.ok){const e=await res.json();alert(e.detail);return;}
       setShowAdd(false);setEditClient(null);setNewClient({name:"",email:"",phone:"",age:"",package_type:""});fetch_();
     }catch{alert("Failed to save client.");}
   };
   const handleDelete=async id=>{
     if(!confirm("Delete this client and all their bookings?"))return;
-    setDeleting(id);try{await fetch(`${API}/api/clients/${id}`,{method:"DELETE"});fetch_();}catch{alert("Failed.");}finally{setDeleting(null);}
+    setDeleting(id);try{await fetch(`${API}/api/clients/${id}`,{method:"DELETE",headers:HEADERS});fetch_();}catch{alert("Failed.");}finally{setDeleting(null);}
   };
   const viewClientProfile=async id=>{
-    try{const res=await fetch(`${API}/api/clients/${id}`);const data=await res.json();setViewClientDetails(data);}catch{alert("Failed to load client details.");}
+    try{const res=await fetch(`${API}/api/clients/${id}`,{headers:HEADERS});const data=await res.json();setViewClientDetails(data);}catch{alert("Failed to load client details.");}
   };
   const filtered=clients.filter(c=>c.name?.toLowerCase().includes(search.toLowerCase())||c.email?.toLowerCase().includes(search.toLowerCase()));
   const ic="w-full px-3 py-2 rounded-xl border border-stone-200 outline-none text-sm bg-white";
@@ -483,17 +476,16 @@ function Clients(){
     </div>
   );
 }
-
 function Bookings(){
   const [bookings,setBookings]=useState([]);
   const [loading,setLoading]=useState(true);
   const [error,setError]=useState(null);
   const [viewBooking,setViewBooking]=useState(null);
-  const fetch_=async()=>{try{setLoading(true);const r=await fetch(`${API}/api/bookings`);if(!r.ok)throw new Error();setBookings(await r.json());setError(null);}catch{setError("Could not connect to backend.");}finally{setLoading(false);}};
+  const fetch_=async()=>{try{setLoading(true);const r=await fetch(`${API}/api/bookings`,{headers:HEADERS});if(!r.ok)throw new Error();setBookings(await r.json());setError(null);}catch{setError("Could not connect to backend.");}finally{setLoading(false);}};
   useEffect(()=>{fetch_();},[]);
-  const updateStatus=async(id,status)=>{try{const b=bookings.find(b=>b.id===id);await fetch(`${API}/api/bookings/${id}`,{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify({client_id:b.client_id,class_id:b.class_id,status})});fetch_();}catch{alert("Failed.");}};
-  const del=async id=>{if(!confirm("Delete this booking?"))return;try{await fetch(`${API}/api/bookings/${id}`,{method:"DELETE"});fetch_();}catch{alert("Failed.");}};
-  const viewDetails=async id=>{try{const res=await fetch(`${API}/api/bookings/${id}`);const data=await res.json();setViewBooking(data);}catch{alert("Failed to load booking details.");}};
+  const updateStatus=async(id,status)=>{try{const b=bookings.find(b=>b.id===id);await fetch(`${API}/api/bookings/${id}`,{method:"PUT",headers:HEADERS_JSON,body:JSON.stringify({client_id:b.client_id,class_id:b.class_id,status})});fetch_();}catch{alert("Failed.");}};
+  const del=async id=>{if(!confirm("Delete this booking?"))return;try{await fetch(`${API}/api/bookings/${id}`,{method:"DELETE",headers:HEADERS});fetch_();}catch{alert("Failed.");}};
+  const viewDetails=async id=>{try{const res=await fetch(`${API}/api/bookings/${id}`,{headers:HEADERS});const data=await res.json();setViewBooking(data);}catch{alert("Failed to load booking details.");}};
   const ss={confirmed:{background:"#d1fae5",color:"#065f46"},waitlist:{background:"#fef9c3",color:"#713f12"},cancelled:{background:"#fee2e2",color:"#991b1b"},CONFIRMED:{background:"#d1fae5",color:"#065f46"},WAITLIST:{background:"#fef9c3",color:"#713f12"},CANCELLED:{background:"#fee2e2",color:"#991b1b"}};
   return(
     <div style={{background:BEIGE_L}} className="min-h-screen">
@@ -550,108 +542,55 @@ function Bookings(){
     </div>
   );
 }
-
 function formatMsg(text = "") {
   const lines = String(text).split("\n");
   const els = [];
   let i = 0;
-
   while (i < lines.length) {
     const line = lines[i];
-
-    // Table detection: header row + separator row
     if (line.includes("|") && lines[i + 1] && lines[i + 1].includes("---")) {
-      const headers = line
-        .split("|")
-        .map((h) => h.trim())
-        .filter(Boolean);
-
-      i += 2; // skip header + separator
-
+      const headers = line.split("|").map((h) => h.trim()).filter(Boolean);
+      i += 2;
       const rows = [];
       while (i < lines.length && lines[i].includes("|")) {
-        rows.push(
-          lines[i]
-            .split("|")
-            .map((c) => c.trim())
-            .filter(Boolean)
-        );
+        rows.push(lines[i].split("|").map((c) => c.trim()).filter(Boolean));
         i++;
       }
-
       els.push(
-        <div
-          key={"t" + i}
-          className="overflow-x-auto my-2 rounded-xl border"
-          style={{ borderColor: "#e8ddd0" }}
-        >
+        <div key={"t" + i} className="overflow-x-auto my-2 rounded-xl border" style={{ borderColor: "#e8ddd0" }}>
           <table className="w-full text-xs">
             <thead style={{ background: "#f5f0ea" }}>
-              <tr>
-                {headers.map((h, j) => (
-                  <th
-                    key={j}
-                    className="px-3 py-2 text-left font-medium text-gray-600"
-                  >
-                    {h.replace(/\*\*/g, "")}
-                  </th>
-                ))}
-              </tr>
+              <tr>{headers.map((h, j) => <th key={j} className="px-3 py-2 text-left font-medium text-gray-600">{h.replace(/\*\*/g, "")}</th>)}</tr>
             </thead>
             <tbody>
               {rows.map((r, j) => (
                 <tr key={j} style={{ borderTop: "1px solid #e8ddd0" }}>
-                  {r.map((c, k) => (
-                    <td key={k} className="px-3 py-2 text-gray-700">
-                      {c.replace(/\*\*/g, "")}
-                    </td>
-                  ))}
+                  {r.map((c, k) => <td key={k} className="px-3 py-2 text-gray-700">{c.replace(/\*\*/g, "")}</td>)}
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
       );
-
       continue;
     }
-
-    // Bold rendering for **text**
     const parts = line.split(/(\*\*[^*]+\*\*)/g);
     const rendered = parts.map((p, j) =>
-      p.startsWith("**") && p.endsWith("**") ? (
-        <strong key={j}>{p.slice(2, -2)}</strong>
-      ) : (
-        <span key={j}>{p}</span>
-      )
+      p.startsWith("**") && p.endsWith("**") ? <strong key={j}>{p.slice(2, -2)}</strong> : <span key={j}>{p}</span>
     );
-
     if (line.trim()) {
-      els.push(
-        <p key={"p" + i} className="mb-1 whitespace-pre-wrap">
-          {rendered}
-        </p>
-      );
+      els.push(<p key={"p" + i} className="mb-1 whitespace-pre-wrap">{rendered}</p>);
     }
-
     i++;
   }
-
   return els;
 }
-
 function cleanAssistantReply(text = "") {
   let t = String(text);
-
-  // Remove markdown headings: "# Title", "## Title", etc.
   t = t.replace(/^\s{0,3}#{1,6}\s+/gm, "");
-
-  // Optional: remove leading "#123" style IDs at line start
   t = t.replace(/^\s*#\d+\s*/gm, "");
-
   return t.trim();
 }
-
 function Chatbot({ forceOpen }) {
   const [open, setOpen] = useState(false);
   const [expanded, setExpanded] = useState(false);
@@ -659,157 +598,62 @@ function Chatbot({ forceOpen }) {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const endRef = useRef(null);
-
-  const suggestions = [
-    "Book a private session",
-    "Show classes",
-    "Check availability",
-    "How do waitlists work?",
-  ];
-
-  useEffect(() => {
-    if (forceOpen) setOpen(true);
-  }, [forceOpen]);
-
-  useEffect(() => {
-    endRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [msgs, open, expanded]);
-
+  const suggestions = ["Book a private session","Show classes","Check availability","How do waitlists work?"];
+  useEffect(() => { if (forceOpen) setOpen(true); }, [forceOpen]);
+  useEffect(() => { endRef.current?.scrollIntoView({ behavior: "smooth" }); }, [msgs, open, expanded]);
   const send = async (txt) => {
     if (!txt.trim() || loading) return;
-
     setMsgs((p) => [...p, { role: "user", content: txt }]);
     setInput("");
     setLoading(true);
-
     try {
       const res = await fetch(
         "https://glorious-halibut-jj5v9v9jrx6wfqxrg-8787.app.github.dev/api/chat",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ message: txt }),
-        }
+        { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ message: txt }) }
       );
-
       const data = await res.json();
       const cleaned = cleanAssistantReply(data.reply ?? "");
       setMsgs((p) => [...p, { role: "assistant", content: cleaned }]);
     } catch {
-      setMsgs((p) => [
-        ...p,
-        {
-          role: "assistant",
-          content:
-            "Sorry, something went wrong. Please email hello@onpilateslane.co.uk",
-        },
-      ]);
+      setMsgs((p) => [...p, { role: "assistant", content: "Sorry, something went wrong. Please email hello@onpilateslane.co.uk" }]);
     } finally {
       setLoading(false);
     }
   };
-
   const w = expanded ? "660px" : "400px";
   const h = expanded ? "75vh" : "580px";
-
   return (
     <>
-      <button
-        onClick={() => setOpen(!open)}
-        className="fixed bottom-6 right-6 w-16 h-16 text-white rounded-full shadow-xl flex items-center justify-center z-50 transition-all hover:scale-110"
-        style={{ background: ROSE }}
-        onMouseEnter={(e) => (e.currentTarget.style.background = ROSE_D)}
-        onMouseLeave={(e) => (e.currentTarget.style.background = ROSE)}
-      >
+      <button onClick={() => setOpen(!open)} className="fixed bottom-6 right-6 w-16 h-16 text-white rounded-full shadow-xl flex items-center justify-center z-50 transition-all hover:scale-110" style={{ background: ROSE }} onMouseEnter={(e) => (e.currentTarget.style.background = ROSE_D)} onMouseLeave={(e) => (e.currentTarget.style.background = ROSE)}>
         {open ? <X size={24} /> : <MessageCircle size={24} />}
       </button>
-
       {open && (
-        <div
-          className="fixed bottom-24 right-6 z-50 flex flex-col bg-white shadow-2xl overflow-hidden"
-          style={{
-            width: w,
-            maxWidth: "calc(100vw - 2rem)",
-            height: h,
-            borderRadius: "20px",
-            border: "1px solid #e8ddd0",
-            transition: "width 0.25s ease, height 0.25s ease",
-          }}
-        >
-          <div
-            className="flex items-center justify-between px-6 py-4 text-white"
-            style={{
-              background: `linear-gradient(135deg,${ROSE} 0%,${ROSE_D} 100%)`,
-            }}
-          >
-            <div>
-              <h3 className="font-medium">OPL Assistant</h3>
-              <p className="text-xs opacity-80">How can we help you today?</p>
-            </div>
-
+        <div className="fixed bottom-24 right-6 z-50 flex flex-col bg-white shadow-2xl overflow-hidden" style={{ width: w, maxWidth: "calc(100vw - 2rem)", height: h, borderRadius: "20px", border: "1px solid #e8ddd0", transition: "width 0.25s ease, height 0.25s ease" }}>
+          <div className="flex items-center justify-between px-6 py-4 text-white" style={{ background: `linear-gradient(135deg,${ROSE} 0%,${ROSE_D} 100%)` }}>
+            <div><h3 className="font-medium">OPL Assistant</h3><p className="text-xs opacity-80">How can we help you today?</p></div>
             <div className="flex items-center gap-2">
-              <button
-                onClick={() => setExpanded((v) => !v)}
-                className="w-8 h-8 rounded-full bg-white/15 hover:bg-white/25 flex items-center justify-center text-white text-sm"
-                title={expanded ? "Shrink" : "Expand"}
-              >
-                {expanded ? "↙" : "↗"}
-              </button>
-              <button
-                onClick={() => setOpen(false)}
-                className="w-8 h-8 rounded-full bg-white/15 hover:bg-white/25 flex items-center justify-center"
-                title="Close"
-              >
-                <X size={16} color="white" />
-              </button>
+              <button onClick={() => setExpanded((v) => !v)} className="w-8 h-8 rounded-full bg-white/15 hover:bg-white/25 flex items-center justify-center text-white text-sm" title={expanded ? "Shrink" : "Expand"}>{expanded ? "↙" : "↗"}</button>
+              <button onClick={() => setOpen(false)} className="w-8 h-8 rounded-full bg-white/15 hover:bg-white/25 flex items-center justify-center" title="Close"><X size={16} color="white" /></button>
             </div>
           </div>
-
           <div className="flex-1 overflow-y-auto p-6 space-y-4">
             {msgs.length === 0 && (
               <div className="text-center text-gray-400 text-sm">
                 <p className="mb-5">Ask me about classes, bookings, or our studio.</p>
                 <div className="flex flex-wrap gap-2 justify-center">
                   {suggestions.map((s, i) => (
-                    <button
-                      key={i}
-                      onClick={() => send(s)}
-                      className="px-4 py-2 text-xs rounded-full transition-colors"
-                      style={{ background: BEIGE_L, color: "#6b7280" }}
-                      onMouseEnter={(e) =>
-                        (e.currentTarget.style.background = "#e8ddd0")
-                      }
-                      onMouseLeave={(e) =>
-                        (e.currentTarget.style.background = BEIGE_L)
-                      }
-                    >
-                      {s}
-                    </button>
+                    <button key={i} onClick={() => send(s)} className="px-4 py-2 text-xs rounded-full transition-colors" style={{ background: BEIGE_L, color: "#6b7280" }} onMouseEnter={(e) => (e.currentTarget.style.background = "#e8ddd0")} onMouseLeave={(e) => (e.currentTarget.style.background = BEIGE_L)}>{s}</button>
                   ))}
                 </div>
               </div>
             )}
-
             {msgs.map((m, i) => (
-              <div
-                key={i}
-                className={`flex ${
-                  m.role === "user" ? "justify-end" : "justify-start"
-                }`}
-              >
-                <div
-                  className="max-w-[80%] px-4 py-3 rounded-2xl text-sm leading-relaxed"
-                  style={
-                    m.role === "user"
-                      ? { background: ROSE, color: "white" }
-                      : { background: BEIGE_L, color: "#374151" }
-                  }
-                >
+              <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
+                <div className="max-w-[80%] px-4 py-3 rounded-2xl text-sm leading-relaxed" style={m.role === "user" ? { background: ROSE, color: "white" } : { background: BEIGE_L, color: "#374151" }}>
                   {m.role === "assistant" ? formatMsg(m.content) : m.content}
                 </div>
               </div>
             ))}
-
             {loading && (
               <div className="flex justify-start">
                 <div className="px-4 py-3 rounded-2xl" style={{ background: BEIGE_L }}>
@@ -817,33 +661,13 @@ function Chatbot({ forceOpen }) {
                 </div>
               </div>
             )}
-
             <div ref={endRef} />
           </div>
-
           <div className="p-4" style={{ borderTop: `1px solid #e8ddd0` }}>
-            <p className="text-xs text-gray-400 text-center mb-3">
-              For general guidance only. Not medical advice.
-            </p>
+            <p className="text-xs text-gray-400 text-center mb-3">For general guidance only. Not medical advice.</p>
             <div className="flex gap-2">
-              <input
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") send(input);
-                }}
-                placeholder="Type your message…"
-                className="flex-1 px-4 py-3 rounded-full border border-stone-200 outline-none text-sm"
-                disabled={loading}
-              />
-              <button
-                onClick={() => send(input)}
-                disabled={loading || !input.trim()}
-                className="w-11 h-11 text-white rounded-full flex items-center justify-center flex-shrink-0 disabled:opacity-40"
-                style={{ background: ROSE }}
-                onMouseEnter={(e) => (e.currentTarget.style.background = ROSE_D)}
-                onMouseLeave={(e) => (e.currentTarget.style.background = ROSE)}
-              >
+              <input value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") send(input); }} placeholder="Type your message…" className="flex-1 px-4 py-3 rounded-full border border-stone-200 outline-none text-sm" disabled={loading}/>
+              <button onClick={() => send(input)} disabled={loading || !input.trim()} className="w-11 h-11 text-white rounded-full flex items-center justify-center flex-shrink-0 disabled:opacity-40" style={{ background: ROSE }} onMouseEnter={(e) => (e.currentTarget.style.background = ROSE_D)} onMouseLeave={(e) => (e.currentTarget.style.background = ROSE)}>
                 <Send size={16} />
               </button>
             </div>
@@ -853,7 +677,6 @@ function Chatbot({ forceOpen }) {
     </>
   );
 }
-
 export default function App(){
   const [path,setPath]=useState("/");
   const [chatOpen,setChatOpen]=useState(false);
