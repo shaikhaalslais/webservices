@@ -551,48 +551,301 @@ function Bookings(){
   );
 }
 
-function Chatbot({forceOpen}){
-  const [open,setOpen]=useState(false);
-  const [msgs,setMsgs]=useState([]);
-  const [input,setInput]=useState("");
-  const [loading,setLoading]=useState(false);
-  const endRef=useRef(null);
-  const suggestions=["Book a private session","Show classes","Check availability","How do waitlists work?"];
-  useEffect(()=>{if(forceOpen)setOpen(true);},[forceOpen]);
-  useEffect(()=>{endRef.current?.scrollIntoView({behavior:"smooth"});},[msgs]);
-  const send = async txt => {
+function formatMsg(text = "") {
+  const lines = String(text).split("\n");
+  const els = [];
+  let i = 0;
+
+  while (i < lines.length) {
+    const line = lines[i];
+
+    // Table detection: header row + separator row
+    if (line.includes("|") && lines[i + 1] && lines[i + 1].includes("---")) {
+      const headers = line
+        .split("|")
+        .map((h) => h.trim())
+        .filter(Boolean);
+
+      i += 2; // skip header + separator
+
+      const rows = [];
+      while (i < lines.length && lines[i].includes("|")) {
+        rows.push(
+          lines[i]
+            .split("|")
+            .map((c) => c.trim())
+            .filter(Boolean)
+        );
+        i++;
+      }
+
+      els.push(
+        <div
+          key={"t" + i}
+          className="overflow-x-auto my-2 rounded-xl border"
+          style={{ borderColor: "#e8ddd0" }}
+        >
+          <table className="w-full text-xs">
+            <thead style={{ background: "#f5f0ea" }}>
+              <tr>
+                {headers.map((h, j) => (
+                  <th
+                    key={j}
+                    className="px-3 py-2 text-left font-medium text-gray-600"
+                  >
+                    {h.replace(/\*\*/g, "")}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((r, j) => (
+                <tr key={j} style={{ borderTop: "1px solid #e8ddd0" }}>
+                  {r.map((c, k) => (
+                    <td key={k} className="px-3 py-2 text-gray-700">
+                      {c.replace(/\*\*/g, "")}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      );
+
+      continue;
+    }
+
+    // Bold rendering for **text**
+    const parts = line.split(/(\*\*[^*]+\*\*)/g);
+    const rendered = parts.map((p, j) =>
+      p.startsWith("**") && p.endsWith("**") ? (
+        <strong key={j}>{p.slice(2, -2)}</strong>
+      ) : (
+        <span key={j}>{p}</span>
+      )
+    );
+
+    if (line.trim()) {
+      els.push(
+        <p key={"p" + i} className="mb-1 whitespace-pre-wrap">
+          {rendered}
+        </p>
+      );
+    }
+
+    i++;
+  }
+
+  return els;
+}
+
+function cleanAssistantReply(text = "") {
+  let t = String(text);
+
+  // Remove markdown headings: "# Title", "## Title", etc.
+  t = t.replace(/^\s{0,3}#{1,6}\s+/gm, "");
+
+  // Optional: remove leading "#123" style IDs at line start
+  t = t.replace(/^\s*#\d+\s*/gm, "");
+
+  return t.trim();
+}
+
+function Chatbot({ forceOpen }) {
+  const [open, setOpen] = useState(false);
+  const [expanded, setExpanded] = useState(false);
+  const [msgs, setMsgs] = useState([]);
+  const [input, setInput] = useState("");
+  const [loading, setLoading] = useState(false);
+  const endRef = useRef(null);
+
+  const suggestions = [
+    "Book a private session",
+    "Show classes",
+    "Check availability",
+    "How do waitlists work?",
+  ];
+
+  useEffect(() => {
+    if (forceOpen) setOpen(true);
+  }, [forceOpen]);
+
+  useEffect(() => {
+    endRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [msgs, open, expanded]);
+
+  const send = async (txt) => {
     if (!txt.trim() || loading) return;
-    setMsgs(p => [...p, { role: "user", content: txt }]);
-    setInput(""); setLoading(true);
+
+    setMsgs((p) => [...p, { role: "user", content: txt }]);
+    setInput("");
+    setLoading(true);
+
     try {
-      const res = await fetch("https://glorious-halibut-jj5v9v9jrx6wfqxrg-8787.app.github.dev/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: txt })
-      });
+      const res = await fetch(
+        "https://glorious-halibut-jj5v9v9jrx6wfqxrg-8787.app.github.dev/api/chat",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ message: txt }),
+        }
+      );
+
       const data = await res.json();
-      setMsgs(p => [...p, { role: "assistant", content: data.reply }]);
+      const cleaned = cleanAssistantReply(data.reply ?? "");
+      setMsgs((p) => [...p, { role: "assistant", content: cleaned }]);
     } catch {
-      setMsgs(p => [...p, { role: "assistant", content: "Sorry, something went wrong. Please email hello@onpilateslane.co.uk" }]);
-    } finally { setLoading(false); }
+      setMsgs((p) => [
+        ...p,
+        {
+          role: "assistant",
+          content:
+            "Sorry, something went wrong. Please email hello@onpilateslane.co.uk",
+        },
+      ]);
+    } finally {
+      setLoading(false);
+    }
   };
-  return(
+
+  const w = expanded ? "660px" : "400px";
+  const h = expanded ? "75vh" : "580px";
+
+  return (
     <>
-      <button onClick={()=>setOpen(!open)} className="fixed bottom-6 right-6 w-16 h-16 text-white rounded-full shadow-xl flex items-center justify-center z-50 transition-all hover:scale-110" style={{background:ROSE}} onMouseEnter={e=>e.currentTarget.style.background=ROSE_D} onMouseLeave={e=>e.currentTarget.style.background=ROSE}>{open?<X size={24}/>:<MessageCircle size={24}/>}</button>
-      {open&&(
-        <div className="fixed bottom-24 right-6 w-96 max-w-[calc(100vw-2rem)] h-[580px] bg-white rounded-3xl shadow-2xl flex flex-col z-50 overflow-hidden">
-          <div className="px-6 py-4 text-white" style={{background:`linear-gradient(135deg,${ROSE} 0%,${ROSE_D} 100%)`}}><h3 className="font-medium">OPL Assistant</h3><p className="text-xs opacity-80">How can we help you today?</p></div>
-          <div className="flex-1 overflow-y-auto p-6 space-y-4">
-            {msgs.length===0&&<div className="text-center text-gray-400 text-sm"><p className="mb-5">Ask me about classes, bookings, or our studio.</p><div className="flex flex-wrap gap-2 justify-center">{suggestions.map((s,i)=><button key={i} onClick={()=>send(s)} className="px-4 py-2 text-xs rounded-full transition-colors" style={{background:BEIGE_L,color:"#6b7280"}} onMouseEnter={e=>e.currentTarget.style.background="#e8ddd0"} onMouseLeave={e=>e.currentTarget.style.background=BEIGE_L}>{s}</button>)}</div></div>}
-            {msgs.map((m,i)=><div key={i} className={`flex ${m.role==="user"?"justify-end":"justify-start"}`}><div className="max-w-[80%] px-4 py-3 rounded-2xl text-sm leading-relaxed" style={m.role==="user"?{background:ROSE,color:"white"}:{background:BEIGE_L,color:"#374151"}}>{m.content}</div></div>)}
-            {loading&&<div className="flex justify-start"><div className="px-4 py-3 rounded-2xl" style={{background:BEIGE_L}}><Loader2 size={18} style={{color:ROSE_D}} className="animate-spin"/></div></div>}
-            <div ref={endRef}/>
+      <button
+        onClick={() => setOpen(!open)}
+        className="fixed bottom-6 right-6 w-16 h-16 text-white rounded-full shadow-xl flex items-center justify-center z-50 transition-all hover:scale-110"
+        style={{ background: ROSE }}
+        onMouseEnter={(e) => (e.currentTarget.style.background = ROSE_D)}
+        onMouseLeave={(e) => (e.currentTarget.style.background = ROSE)}
+      >
+        {open ? <X size={24} /> : <MessageCircle size={24} />}
+      </button>
+
+      {open && (
+        <div
+          className="fixed bottom-24 right-6 z-50 flex flex-col bg-white shadow-2xl overflow-hidden"
+          style={{
+            width: w,
+            maxWidth: "calc(100vw - 2rem)",
+            height: h,
+            borderRadius: "20px",
+            border: "1px solid #e8ddd0",
+            transition: "width 0.25s ease, height 0.25s ease",
+          }}
+        >
+          <div
+            className="flex items-center justify-between px-6 py-4 text-white"
+            style={{
+              background: `linear-gradient(135deg,${ROSE} 0%,${ROSE_D} 100%)`,
+            }}
+          >
+            <div>
+              <h3 className="font-medium">OPL Assistant</h3>
+              <p className="text-xs opacity-80">How can we help you today?</p>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setExpanded((v) => !v)}
+                className="w-8 h-8 rounded-full bg-white/15 hover:bg-white/25 flex items-center justify-center text-white text-sm"
+                title={expanded ? "Shrink" : "Expand"}
+              >
+                {expanded ? "↙" : "↗"}
+              </button>
+              <button
+                onClick={() => setOpen(false)}
+                className="w-8 h-8 rounded-full bg-white/15 hover:bg-white/25 flex items-center justify-center"
+                title="Close"
+              >
+                <X size={16} color="white" />
+              </button>
+            </div>
           </div>
-          <div className="p-4" style={{borderTop:`1px solid #e8ddd0`}}>
-            <p className="text-xs text-gray-400 text-center mb-3">For general guidance only. Not medical advice.</p>
+
+          <div className="flex-1 overflow-y-auto p-6 space-y-4">
+            {msgs.length === 0 && (
+              <div className="text-center text-gray-400 text-sm">
+                <p className="mb-5">Ask me about classes, bookings, or our studio.</p>
+                <div className="flex flex-wrap gap-2 justify-center">
+                  {suggestions.map((s, i) => (
+                    <button
+                      key={i}
+                      onClick={() => send(s)}
+                      className="px-4 py-2 text-xs rounded-full transition-colors"
+                      style={{ background: BEIGE_L, color: "#6b7280" }}
+                      onMouseEnter={(e) =>
+                        (e.currentTarget.style.background = "#e8ddd0")
+                      }
+                      onMouseLeave={(e) =>
+                        (e.currentTarget.style.background = BEIGE_L)
+                      }
+                    >
+                      {s}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {msgs.map((m, i) => (
+              <div
+                key={i}
+                className={`flex ${
+                  m.role === "user" ? "justify-end" : "justify-start"
+                }`}
+              >
+                <div
+                  className="max-w-[80%] px-4 py-3 rounded-2xl text-sm leading-relaxed"
+                  style={
+                    m.role === "user"
+                      ? { background: ROSE, color: "white" }
+                      : { background: BEIGE_L, color: "#374151" }
+                  }
+                >
+                  {m.role === "assistant" ? formatMsg(m.content) : m.content}
+                </div>
+              </div>
+            ))}
+
+            {loading && (
+              <div className="flex justify-start">
+                <div className="px-4 py-3 rounded-2xl" style={{ background: BEIGE_L }}>
+                  <Loader2 size={18} style={{ color: ROSE_D }} className="animate-spin" />
+                </div>
+              </div>
+            )}
+
+            <div ref={endRef} />
+          </div>
+
+          <div className="p-4" style={{ borderTop: `1px solid #e8ddd0` }}>
+            <p className="text-xs text-gray-400 text-center mb-3">
+              For general guidance only. Not medical advice.
+            </p>
             <div className="flex gap-2">
-              <input value={input} onChange={e=>setInput(e.target.value)} onKeyDown={e=>{if(e.key==="Enter")send(input);}} placeholder="Type your message…" className="flex-1 px-4 py-3 rounded-full border border-stone-200 outline-none text-sm" disabled={loading}/>
-              <button onClick={()=>send(input)} disabled={loading||!input.trim()} className="w-11 h-11 text-white rounded-full flex items-center justify-center flex-shrink-0 disabled:opacity-40" style={{background:ROSE}} onMouseEnter={e=>e.currentTarget.style.background=ROSE_D} onMouseLeave={e=>e.currentTarget.style.background=ROSE}><Send size={16}/></button>
+              <input
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") send(input);
+                }}
+                placeholder="Type your message…"
+                className="flex-1 px-4 py-3 rounded-full border border-stone-200 outline-none text-sm"
+                disabled={loading}
+              />
+              <button
+                onClick={() => send(input)}
+                disabled={loading || !input.trim()}
+                className="w-11 h-11 text-white rounded-full flex items-center justify-center flex-shrink-0 disabled:opacity-40"
+                style={{ background: ROSE }}
+                onMouseEnter={(e) => (e.currentTarget.style.background = ROSE_D)}
+                onMouseLeave={(e) => (e.currentTarget.style.background = ROSE)}
+              >
+                <Send size={16} />
+              </button>
             </div>
           </div>
         </div>
