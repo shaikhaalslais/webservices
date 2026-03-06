@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from app.auth import get_api_key
+from app.auth import get_current_user
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from typing import List, Literal
@@ -10,7 +10,7 @@ from app.schemas import BookingResponse, BookingCreate, ClientResponse, ClientCr
 
 router = APIRouter(
     prefix="/api",
-    dependencies=[Depends(get_api_key)],
+    dependencies=[Depends(get_current_user)],
 )
 
 # booking endpoints (CRUD)
