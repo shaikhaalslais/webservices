@@ -23,6 +23,7 @@ app.add_middleware(
 
 app.include_router(bookings.router)
 app.include_router(auth_routes.router)
+app.include_router(bookings.public_router) 
 
 @app.get("/")
 def root():
