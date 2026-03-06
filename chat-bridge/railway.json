@@ -1,0 +1,9 @@
+{
+  "build": {
+    "builder": "NIXPACKS",
+    "buildCommand": "npm install && pip install mcp httpx python-dotenv"
+  },
+  "deploy": {
+    "startCommand": "npm start"
+  }
+}

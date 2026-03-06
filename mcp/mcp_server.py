@@ -9,7 +9,7 @@ import os
 load_dotenv()
 
 app = Server("pilates-booking-api")
-API_BASE_URL = "http://127.0.0.1:8000"
+API_BASE_URL = os.getenv("API_BASE_URL", "http://127.0.0.1:8000")
 API_HEADERS = {"X-API-Key": os.getenv("API_KEY")}
 
 
