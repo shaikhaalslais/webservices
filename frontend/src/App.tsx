@@ -709,7 +709,6 @@ export default function App() {
     "/clients": <Clients />,
     "/bookings": <Bookings />,
   };
-
   return (
     <div className="min-h-screen flex flex-col" style={{ background: BEIGE_L }}>
       <Navbar currentPath={path} onNavigate={navigate} isLoggedIn={isLoggedIn} onLogout={handleLogout} />
