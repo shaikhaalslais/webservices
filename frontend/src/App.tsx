@@ -2,8 +2,8 @@ import { useState, useEffect, useRef } from "react";
 import { ArrowRight, Users, Heart, Sparkles, Menu, X, Instagram, Mail, MapPin, Check, Calendar, Clock, Search, UserPlus, GraduationCap, Target, MessageCircle, Send, Loader2, Eye, LogOut, Lock } from "lucide-react";
 
 const BEIGE="$e8ddd0",BEIGE_L="#f5f0ea",ROSE="#3e2723",ROSE_D="#2e1a17";
-const API = import.meta.env.VITE_API_URL || "https://glorious-halibut-jj5v9v9jrx6wfqxrg-8000.app.github.dev";
-const CHAT_URL = import.meta.env.VITE_CHAT_URL || "https://glorious-halibut-jj5v9v9jrx6wfqxrg-8787.app.github.dev";
+const API = import.meta.env.VITE_API_URL || "https://onpilateslane.com";
+const CHAT_URL = import.meta.env.VITE_CHAT_URL || "https://onpilateslane.com";
 
 // ── Auth helpers ──────────────────────────────────────────
 const getToken = () => sessionStorage.getItem("opl_token");
