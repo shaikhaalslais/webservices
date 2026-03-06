@@ -1,27 +1,27 @@
 import { useState, useEffect, useRef } from "react";
 import { ArrowRight, Users, Heart, Sparkles, Menu, X, Instagram, Mail, MapPin, Check, Calendar, Clock, Search, UserPlus, GraduationCap, Target, MessageCircle, Send, Loader2, Eye, LogOut, Lock } from "lucide-react";
 
-const BEIGE="$e8ddd0",BEIGE_L="#f5f0ea",ROSE="#3e2723",ROSE_D="#2e1a17";
-const API = import.meta.env.VITE_API_URL || "https://onpilateslane.com";
-const CHAT_URL = import.meta.env.VITE_CHAT_URL || "https://onpilateslane.com";
+const BEIGE_L="#f5f0ea",ROSE="#3e2723",ROSE_D="#2e1a17";
+const API = import.meta.env.VITE_API_URL || "https://glorious-halibut-jj5v9v9jrx6wfqxrg-8000.app.github.dev";
+const CHAT_URL = import.meta.env.VITE_CHAT_URL || "https://glorious-halibut-jj5v9v9jrx6wfqxrg-8787.app.github.dev";
 
-// ── Auth helpers ──────────────────────────────────────────
+// Auth helpers
 const getToken = () => sessionStorage.getItem("opl_token");
 const getRole  = () => sessionStorage.getItem("opl_role");
 
-const authHeaders = () => {
+const authHeaders = (): Record<string, string> => {
   const t = getToken();
   return t
     ? { "Authorization": `Bearer ${t}`, "Content-Type": "application/json" }
     : { "Content-Type": "application/json" };
 };
 
-const authHeadersNoJson = () => {
+const authHeadersNoJson = (): Record<string, string> => {
   const t = getToken();
   return t ? { "Authorization": `Bearer ${t}` } : {};
 };
 
-// ── Login Page ────────────────────────────────────────────
+// Login Page
 function LoginPage({ onLogin }: { onLogin: (token: string, role: string) => void }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -85,7 +85,7 @@ function LoginPage({ onLogin }: { onLogin: (token: string, role: string) => void
   );
 }
 
-// ── Navbar ────────────────────────────────────────────────
+// Navbar
 function Navbar({ currentPath, onNavigate, isLoggedIn, onLogout }: any) {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
@@ -655,17 +655,17 @@ function Chatbot({ forceOpen }: any) {
   );
 }
 
-// ── App Root ──────────────────────────────────────────────
+// App Root
 export default function App() {
   const [path, setPath] = useState("/");
   const [chatOpen, setChatOpen] = useState(false);
   const [token, setToken] = useState(getToken());
-  const [role, setRole] = useState(getRole());
 
   const navigate = (p: string) => { setPath(p); window.scrollTo({ top: 0, behavior: "smooth" }); };
 
   const handleLogin = (t: string, r: string) => {
-    setToken(t); setRole(r);
+    setToken(t);
+    sessionStorage.setItem("opl_role", r);
     navigate("/clients");
   };
 
