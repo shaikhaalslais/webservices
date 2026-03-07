@@ -3,8 +3,8 @@ import { ArrowRight, Users, Heart, Sparkles, Menu, X, Instagram, Mail, MapPin, C
 import type { LucideIcon } from "lucide-react";
 
 const BEIGE_L="#f5f0ea", ROSE="#3e2723", ROSE_D="#2e1a17";
-const API = import.meta.env.VITE_API_URL || "https://onpilateslane.com";
-const CHAT_URL = import.meta.env.VITE_CHAT_URL || "https://onpilateslane.com";
+const API = import.meta.env.VITE_API_URL || "https://webapp-production-45f1.up.railway.app";
+const CHAT_URL = import.meta.env.VITE_CHAT_URL || "https://webapp-production-45f1.up.railway.app";
 
 // Auth helpers
 const getToken = () => sessionStorage.getItem("opl_token");
