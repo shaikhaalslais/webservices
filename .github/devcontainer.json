@@ -1,8 +1,0 @@
-{
-  "forwardPorts": [8000, 8787, 5173],
-  "portsAttributes": {
-    "8000": { "visibility": "public" },
-    "8787": { "visibility": "public" },
-    "5173": { "visibility": "public" }
-  }
-}
