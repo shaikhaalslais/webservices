@@ -2,8 +2,14 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.routes import bookings
 from app.routes import auth_routes
+from app.database import Base, engine
+from app import models
 from dotenv import load_dotenv
+
 load_dotenv()
+
+# Create tables automatically
+Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
     title="Pilates Booking API",
