@@ -8,10 +8,7 @@ from app.models import Booking, Client, PilatesClass, PrivateSessionRequest, Stu
 from app.schemas import BookingResponse, BookingCreate, ClientResponse, ClientCreate, ClassResponse, PrivateSessionResponse, PrivateSessionCreate
 
 
-router = APIRouter(
-    prefix="/api",
-    dependencies=[Depends(get_current_user)],
-)
+router = APIRouter(prefix="/api",)
 
 # booking endpoints (CRUD)
 
@@ -108,14 +105,16 @@ def update_booking(booking_id: int, booking_update: BookingCreate, db: Session =
 def delete_booking(booking_id: int, db: Session = Depends(get_db)):
 
     booking = db.query(Booking).filter(Booking.id == booking_id).first()
+
     if not booking:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
+            status_code=404,
             detail=f"Booking with id {booking_id} not found"
         )
-    
+
     db.delete(booking)
     db.commit()
+
     return None
 
 
@@ -239,16 +238,19 @@ def update_client(client_id: int, client_update: ClientCreate, db: Session = Dep
 # delete a client
 @router.delete("/clients/{client_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_client(client_id: int, db: Session = Depends(get_db)):
+
     client = db.query(Client).filter(Client.id == client_id).first()
     if not client:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Client with id {client_id} not found"
+            status_code=404,
+            detail="Client not found"
         )
-    
+
+    # delete bookings first
+    db.query(Booking).filter(Booking.client_id == client_id).delete()
+
     db.delete(client)
     db.commit()
-    return None
 
 # Private session endpoints(CRUD)
 
