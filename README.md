@@ -99,17 +99,7 @@ The API documentation has also been exported as a PDF and is included in the roo
 
 ---
 
-## Key Features
 
-- **Class Schedule** — Browse and book group Pilates classes by location
-- **Private Sessions** — Submit booking requests for one-to-one sessions
-- **Client Management** — Staff can add, edit, view, and delete client records
-- **Bookings Management** — Staff can confirm, cancel, and delete bookings
-- **Waitlist System** — Automatic waitlist when a class reaches capacity
-- **AI Chatbot** — MCP-powered assistant for studio and booking queries
-- **Authentication** — JWT-based staff login with protected routes
-
----
 
 ## Running All Services (Summary)
 
