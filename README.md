@@ -5,14 +5,6 @@
 
 ---
 
-## Project Overview
-
-On Pilates Lane (OPL) is a full-stack web application for a boutique Pilates studio based in Leeds, UK. The system provides a public-facing website with class schedules, private session booking, and an AI-powered chatbot assistant, alongside a protected staff dashboard for managing clients and bookings.
-
-The backend is built as a RESTful API using FastAPI (Python), with a React/Vite frontend and a separate MCP-based chatbot service.
-
----
-
 ## Running the Project
 
 This project is intended to be run inside a **GitHub Codespace**. All required dependencies (Python, Node.js, Git) are pre-installed in the Codespace environment. No local installation is required.
