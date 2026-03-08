@@ -72,7 +72,7 @@ npm install
 npm run dev
 ```
 
-The frontend will be available at `http://localhost:5173`.
+The frontend will be available at `http://localhost:5173`. In a GitHub Codespace, open the **Ports** tab and click the forwarded URL for port **5173** to access the application in your browser.
 
 ---
 
