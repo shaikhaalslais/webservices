@@ -89,8 +89,6 @@ The admin dashboard (Clients and Bookings pages) requires authentication. Use th
 
 ## API Documentation
 
-The API is documented using the OpenAPI standard and is accessible once the backend is running.
-
 **Interactive API Docs (Swagger UI):** `http://localhost:8000/docs`
 
 The API documentation has also been exported as a PDF and is included in the root of this repository:
@@ -98,7 +96,6 @@ The API documentation has also been exported as a PDF and is included in the roo
 📄 `api-documentation.pdf`
 
 ---
-
 
 
 ## Running All Services (Summary)
