@@ -245,12 +245,12 @@ function About() {
 
 function Classes() {
   const [classes, setClasses] = useState<any[]>([]);
-  const [clients, setClients] = useState<any[]>([]);
   const [studios, setStudios] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [avail, setAvail] = useState<Record<number, any>>({});
   const [bookingClass, setBookingClass] = useState<any>(null);
   const [clientId, setClientId] = useState("");
+  const [clients, setClients] = useState<any[]>([]);
   const [selectedStudio, setSelectedStudio] = useState("");
   const [bookMsg, setBookMsg] = useState("");
   const [booking, setBooking] = useState(false);
@@ -259,13 +259,27 @@ function Classes() {
   useEffect(() => {
     const load = async () => {
       try {
-        const [cl, st] = await Promise.all([
-          fetch(`${API}/api/clients`, { headers: authHeadersNoJson() }).then(r => r.json()),
-          fetch(`${API}/api/studios`, { headers: authHeadersNoJson() }).then(r => r.json())
-        ]);
-        setClients(cl); setStudios(st);
-      } catch (e) { console.error(e); }
-    }; load();
+        const res = await fetch(`${API}/api/studios`);
+        const data = await res.json();
+        setStudios(Array.isArray(data) ? data : []);
+      } catch (e) {
+        console.error(e);
+      }
+    };
+    load();
+  }, []);
+  useEffect(() => {
+    const loadClients = async () => {
+      try {
+        const res = await fetch(`${API}/api/clients`, {
+          headers: authHeadersNoJson()
+        });
+        const data = await res.json();
+        setClients(Array.isArray(data) ? data : []);
+      } catch (e) {
+        console.error("Failed to load clients", e);
+      }
+    }; loadClients();
   }, []);
   useEffect(() => {
     if (!selectedStudio) return;
@@ -281,10 +295,10 @@ function Classes() {
     }; loadClasses();
   }, [selectedStudio]);
   const handleBook = async () => {
-    if (!clientId) { setBookMsg("Please select a client."); return; }
+  if (!clientId) { setBookMsg("Please select a client."); return; }
     setBooking(true); setBookMsg("");
     try {
-      const res = await fetch(`${API}/api/bookings`, { method: "POST", headers: authHeaders(), body: JSON.stringify({ client_id: parseInt(clientId), class_id: bookingClass.id, status: "confirmed" }) });
+      const res = await fetch(`${API}/api/bookings`, { method: "POST", headers: authHeaders(), body: JSON.stringify({ client_id: clientId, class_id: bookingClass.id, status: "confirmed" }) });
       const data = await res.json();
       if (!res.ok) { setBookMsg(data.detail || "Booking failed."); return; }
       setBookMsg(data.status === "waitlist" ? "Added to waitlist!" : "Booking confirmed! ✓");
@@ -308,11 +322,20 @@ function Classes() {
               <div className="text-gray-600 text-xs">{studios.find(s => s.id === bookingClass.studio_id)?.name || "Loading..."}</div>
             </div>
             {avail[bookingClass.id] && <div className="mb-5 px-4 py-3 rounded-2xl text-sm" style={{ background: BEIGE_L }}><span className="font-medium text-gray-700">{avail[bookingClass.id].available_spots}</span><span className="text-gray-500"> of {avail[bookingClass.id].capacity} spots left</span>{avail[bookingClass.id].is_full && <span className="ml-2 text-yellow-600 font-medium">· Waitlist</span>}</div>}
-            <label className="block text-xs font-medium text-gray-500 mb-1">Select Client *</label>
-            <select value={clientId} onChange={e => setClientId(e.target.value)} className={inp}>
-              <option value="">Choose a client…</option>
-              {clients.map(c => <option key={c.id} value={c.id}>{c.name} — {c.email}</option>)}
-            </select>
+           <label className="block text-xs font-medium text-gray-500 mb-1">Select Client *</label>
+          <select
+            value={clientId}
+            onChange={(e) => setClientId(e.target.value)}
+            className={inp}
+          >
+            <option value="">Select a client</option>
+
+            {clients.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name} — {c.email}
+              </option>
+            ))}
+          </select>
             {bookMsg && <p className={`mt-4 text-sm text-center font-medium ${bookMsg.includes("✓") || bookMsg.includes("waitlist") ? "text-green-600" : "text-red-400"}`}>{bookMsg}</p>}
             <div className="flex gap-3 mt-6">
               <button onClick={handleBook} disabled={booking} className="flex-1 py-3 text-white rounded-full text-sm font-medium disabled:opacity-50" style={{ background: ROSE }} onMouseEnter={e => e.currentTarget.style.background = ROSE_D} onMouseLeave={e => e.currentTarget.style.background = ROSE}>{booking ? "Booking…" : "Confirm"}</button>
