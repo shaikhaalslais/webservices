@@ -86,59 +86,55 @@ def generate_classes():
     
     studios = db.query(Studio).all()
     instructors = db.query(Instructor).all()
-    
-    # ONLY 4 classes total 
+
     classes_data = [
         {
             "name": "Beginner Mat",
-            "description": "Perfect for those new to Pilates. Focus on foundational movements and core strength.",
+            "description": "Perfect for those new to Pilates.",
             "level": "Beginner",
             "day_of_week": "Friday",
             "time": "06:30",
             "duration_minutes": 60,
-            "capacity": 12,
-            "studio_id": studios[0].id if studios else 1,
-            "instructor_id": instructors[0].id if instructors else 1
+            "capacity": 12
         },
         {
             "name": "Intermediate Mat",
-            "description": "Build on the basics with more challenging mat exercises and flowing sequences.",
+            "description": "Build on the basics.",
             "level": "Intermediate",
             "day_of_week": "Wednesday",
             "time": "10:00",
             "duration_minutes": 60,
-            "capacity": 10,
-            "studio_id": studios[1].id if len(studios) > 1 else 1,
-            "instructor_id": instructors[1].id if len(instructors) > 1 else 1
+            "capacity": 10
         },
         {
             "name": "Beginner Reformer",
-            "description": "Introduction to the Reformer machine with guided, supported movements.",
+            "description": "Introduction to the Reformer machine.",
             "level": "Beginner",
             "day_of_week": "Monday",
             "time": "09:00",
             "duration_minutes": 50,
-            "capacity": 8,
-            "studio_id": studios[2].id if len(studios) > 2 else 1,
-            "instructor_id": instructors[2].id if len(instructors) > 2 else 1
+            "capacity": 8
         },
         {
             "name": "Intermediate Reformer",
-            "description": "Dynamic Reformer sequences for those comfortable with the equipment.",
+            "description": "Dynamic Reformer sequences.",
             "level": "Intermediate",
             "day_of_week": "Thursday",
             "time": "18:00",
             "duration_minutes": 50,
-            "capacity": 8,
-            "studio_id": studios[3].id if len(studios) > 3 else 1,
-            "instructor_id": instructors[3].id if len(instructors) > 3 else 1
+            "capacity": 8
         }
     ]
-    
-    for class_info in classes_data:
-        pilates_class = PilatesClass(**class_info)
-        db.add(pilates_class)
-    
+
+    for studio in studios:
+        for class_info in classes_data:
+            pilates_class = PilatesClass(
+                **class_info,
+                studio_id=studio.id,
+                instructor_id=random.choice(instructors).id
+            )
+            db.add(pilates_class)
+
     db.commit()
     db.close()
 
