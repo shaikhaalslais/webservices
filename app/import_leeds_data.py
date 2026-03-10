@@ -4,15 +4,25 @@ from datetime import datetime, timedelta, timezone
 from app.database import SessionLocal
 from app.models import Studio, Client, Instructor, PilatesClass, Booking, BookingStatus
 
+def reset_database():
+    db = SessionLocal()
+
+    # Delete in correct order because of foreign keys
+    db.query(Booking).delete()
+    db.query(PilatesClass).delete()
+    db.query(Instructor).delete()
+    db.query(Client).delete()
+    db.query(Studio).delete()
+
+    db.commit()
+    db.close()
+
 def import_all_leeds_data():
     # Load the full CSV
     df = pd.read_csv('data/leeds_leisure_centres.csv')
         
     # Get database session
     db = SessionLocal()
-    
-    # Clear existing studios
-    db.query(Studio).delete()
     
     # Import all facilities
     count = 0
@@ -173,8 +183,9 @@ def generate_bookings():
     db.close()
 
 def main():
-    print("importing data complete")
-    
+    print("Seeding database...")
+
+    reset_database()
     import_all_leeds_data()
     generate_clients()
     generate_instructors()
