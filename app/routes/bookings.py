@@ -134,7 +134,7 @@ def get_client(client_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Client with id {client_id} not found")
     return client
 
-@router.get("/clients", response_model=List[ClientResponse], status_code=status.HTTP_200_OK)
+@public_router.get("/clients", response_model=List[ClientResponse], status_code=status.HTTP_200_OK)
 def get_all_clients(db: Session = Depends(get_db)):
     return db.query(Client).all()
 
