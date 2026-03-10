@@ -19,7 +19,6 @@ public_router = APIRouter(prefix="/api")
 
 
 # Booking endpoints (CRUD) — protected
-
 @router.get("/bookings", response_model=List[BookingResponse], status_code=status.HTTP_200_OK)
 def get_all_bookings(db: Session = Depends(get_db)):
     return db.query(Booking).all()
@@ -31,7 +30,7 @@ def get_booking(booking_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Booking with id {booking_id} not found")
     return booking
 
-@router.post("/bookings", response_model=BookingResponse, status_code=status.HTTP_201_CREATED)
+@public_router.post("/bookings", response_model=BookingResponse, status_code=status.HTTP_201_CREATED)
 def create_booking(booking: BookingCreate, db: Session = Depends(get_db)):
     client = db.query(Client).filter(Client.id == booking.client_id).first()
     if not client:
