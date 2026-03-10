@@ -6,10 +6,13 @@ from app.database import Base, engine
 from app import models
 from dotenv import load_dotenv
 
+
 load_dotenv()
 
 # Create tables automatically
 Base.metadata.create_all(bind=engine)
+from app.import_leeds_data import main as seed_data
+seed_data()
 
 app = FastAPI(
     title="Pilates Booking API",
