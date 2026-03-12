@@ -484,7 +484,7 @@ function Clients() {
   };
   const handleDelete = async (id: number) => {
     if (!confirm("Delete this client and all their bookings?")) return;
-    setDeleting(id); try { await fetch(`${API}/api/clients/${id}`, { method: "DELETE", headers: authHeadersNoJson() }); fetch_(); } catch { alert("Failed."); } finally { setDeleting(null); }
+    setDeleting(id); try { await fetch(`${API}/api/clients/${id}`, { method: "DELETE", headers: authHeaders() }); fetch_(); } catch { alert("Failed."); } finally { setDeleting(null); }
   };
   const viewProfile = async (id: number) => { try { const res = await fetch(`${API}/api/clients/${id}`, { headers: authHeadersNoJson() }); setViewClientDetails(await res.json()); } catch { alert("Failed."); } };
   const filtered = clients.filter(c => c.name?.toLowerCase().includes(search.toLowerCase()) || c.email?.toLowerCase().includes(search.toLowerCase()));
@@ -561,7 +561,7 @@ function Bookings() {
   const fetch_ = async () => { try { setLoading(true); const r = await fetch(`${API}/api/bookings`, { headers: authHeadersNoJson() }); if (!r.ok) throw new Error(); setBookings(await r.json()); setError(null); } catch { setError("Could not connect to backend."); } finally { setLoading(false); } };
   useEffect(() => { fetch_(); }, []);
   const updateStatus = async (id: number, status: string) => { try { const b = bookings.find(b => b.id === id); await fetch(`${API}/api/bookings/${id}`, { method: "PUT", headers: authHeaders(), body: JSON.stringify({ client_id: b.client_id, class_id: b.class_id, status }) }); fetch_(); } catch { alert("Failed."); } };
-  const del = async (id: number) => { if (!confirm("Delete this booking?")) return; try { await fetch(`${API}/api/bookings/${id}`, { method: "DELETE", headers: authHeadersNoJson() }); fetch_(); } catch { alert("Failed."); } };
+  const del = async (id: number) => { if (!confirm("Delete this booking?")) return; try { await fetch(`${API}/api/bookings/${id}`, { method: "DELETE", headers: authHeaders() }); fetch_(); } catch { alert("Failed."); } };
   const viewDetails = async (id: number) => { try { const res = await fetch(`${API}/api/bookings/${id}`, { headers: authHeadersNoJson() }); setViewBooking(await res.json()); } catch { alert("Failed."); } };
   const ss: Record<string, React.CSSProperties> = { confirmed: { background: "#d1fae5", color: "#065f46" }, waitlist: { background: "#fef9c3", color: "#713f12" }, cancelled: { background: "#fee2e2", color: "#991b1b" } };
   return (

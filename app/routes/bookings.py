@@ -162,6 +162,10 @@ def delete_client(client_id: int, db: Session = Depends(get_db)):
     client = db.query(Client).filter(Client.id == client_id).first()
     if not client:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Client with id {client_id} not found")
+    
+    # delete bookings first
+    db.query(Booking).filter(Booking.client_id == client_id).delete()
+
     db.delete(client)
     db.commit()
     return None
