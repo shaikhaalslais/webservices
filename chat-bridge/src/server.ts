@@ -7,7 +7,10 @@ import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js'
 
 dotenv.config();
 const app = express();
-app.use(cors());
+app.use(cors({
+  origin: ['https://www.onpilateslane.com', 'https://onpilateslane.com'],
+  methods: ['GET', 'POST'],
+}));
 app.use(express.json());
 
 let mcpClient: Client | null = null;
