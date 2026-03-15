@@ -1,9 +1,9 @@
 {
   "build": {
     "builder": "NIXPACKS",
-    "buildCommand": "npm install && pip install mcp httpx python-dotenv"
+    "buildCommand": "npm install && pip install mcp httpx python-dotenv starlette uvicorn"
   },
   "deploy": {
-    "startCommand": "npm start"
+    "startCommand": "python ../mcp/mcp_server.py & npm start"
   }
 }
