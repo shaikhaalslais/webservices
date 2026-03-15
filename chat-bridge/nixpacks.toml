@@ -2,7 +2,7 @@
 nixPkgs = ["nodejs_20", "python311", "python311Packages.pip"]
 
 [phases.install]
-cmds = ["cd chat-bridge && npm install", "pip install mcp httpx python-dotenv --break-system-packages"]
+cmds = ["npm install", "pip install mcp httpx python-dotenv --break-system-packages"]
 
 [start]
-cmd = "cd chat-bridge && npm start"
+cmd = "npm start"
