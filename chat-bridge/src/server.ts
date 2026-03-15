@@ -26,7 +26,7 @@ async function initMCP() {
     mcpClient = new Client({ name: 'opl-bridge', version: '1.0.0' }, { capabilities: {} });
     await mcpClient.connect(transport);
     const result = await mcpClient.listTools();
-    availableTools = result.tools;
+    availableTools = result.tools; 
     console.log(`✅ MCP connected — ${availableTools.length} tools loaded`);
   } catch (e) {
     console.error('MCP failed:', e);
