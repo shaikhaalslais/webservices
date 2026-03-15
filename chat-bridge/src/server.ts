@@ -22,7 +22,15 @@ const SYSTEM_PROMPT = `You are the On Pilates Lane assistant in Leeds, UK. Help 
 async function initMCP() {
   try {
     const args = (process.env.MCP_ARGS || '').split(',');
-    const transport = new StdioClientTransport({ command: process.env.MCP_COMMAND || 'python', args });
+    const transport = new StdioClientTransport({ 
+      command: process.env.MCP_COMMAND || 'python3', 
+      args,
+      env: {
+        ...process.env,
+        API_BASE_URL: process.env.API_BASE_URL || '',
+        API_KEY: process.env.API_KEY || '',
+      }
+    });
     mcpClient = new Client({ name: 'opl-bridge', version: '1.0.0' }, { capabilities: {} });
     await mcpClient.connect(transport);
     const result = await mcpClient.listTools();
