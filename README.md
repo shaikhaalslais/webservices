@@ -28,14 +28,16 @@ git clone https://github.com/shaikhaalslais/webservices.git
 cd webservices
 ```
 
-### 2. Backend (FastAPI)
+You will need 3 separate terminals running simultaneously.
+
+### 2. Backend (FastAPI) — Terminal 1
 ```bash
 pip install -r requirements.txt
 uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 ```
 Runs at `http://localhost:8000` — Swagger docs at `http://localhost:8000/docs`
 
-### 3. Frontend (React)
+### 3. Frontend (React) — Terminal 2
 ```bash
 cd frontend
 npm install
@@ -44,7 +46,7 @@ npm run dev
 
 Runs at `http://localhost:5173`
 
-### 4. Chat Bridge
+### 4. Chat Bridge — Terminal 3
 ```bash
 cd chat-bridge
 npm install
