@@ -4,7 +4,7 @@ A full-stack web application for managing Pilates class bookings, clients, and p
 
 **Live URL:** [https://www.onpilateslane.com](https://www.onpilateslane.com)  
 **API Documentation:** [https://webapp-production-45f1.up.railway.app/docs](https://webapp-production-45f1.up.railway.app/docs)  
-**API Documentation:** See `API_DOCUMENTATION.pdf`  
+**API Documentation PDF:** See `API_DOCUMENTATION.pdf`  
 
 ---
 
@@ -14,7 +14,21 @@ On Pilates Lane allows users to browse and book Pilates classes across Leeds, ma
 
 ---
 
+## Deployment
+
+The application is fully deployed and live at [https://www.onpilateslane.com](https://www.onpilateslane.com), running across four separate services on Railway:
+
+| Service | URL |
+|---------|-----|
+| Frontend | https://www.onpilateslane.com |
+| Backend API | https://webapp-production-45f1.up.railway.app |
+| API Docs | https://webapp-production-45f1.up.railway.app/docs |
+
+---
+
 ## Local Setup Instructions
+
+To run the project locally, you will need 3 separate terminals running simultaneously.
 
 ### Prerequisites
 - Python 3.11+
@@ -27,8 +41,6 @@ On Pilates Lane allows users to browse and book Pilates classes across Leeds, ma
 git clone https://github.com/shaikhaalslais/webservices.git
 cd webservices
 ```
-
-You will need 3 separate terminals running simultaneously.
 
 ### 2. Backend (FastAPI) — Terminal 1
 ```bash
@@ -43,7 +55,6 @@ cd frontend
 npm install
 npm run dev
 ```
-
 Runs at `http://localhost:5173`
 
 ### 4. Chat Bridge — Terminal 3
@@ -52,5 +63,4 @@ cd chat-bridge
 npm install
 npm run dev
 ```
-
 Runs at `http://localhost:8787`
