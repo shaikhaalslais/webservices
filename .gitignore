@@ -1,1 +1,9 @@
-.envchat-bridge/.env
+.env
+**/.env
+*.env
+venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+node_modules/
+*.db
