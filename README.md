@@ -3,8 +3,8 @@
 A full-stack web application for managing Pilates class bookings, clients, and private sessions, with an AI-powered chatbot assistant.
 
 **Live URL:** [https://www.onpilateslane.com](https://www.onpilateslane.com)  
+**API Documentation:** [https://webapp-production-45f1.up.railway.app/docs](https://webapp-production-45f1.up.railway.app/docs)  
 **API Documentation:** See `API_DOCUMENTATION.pdf`  
-**Technical Report:** See `TECHNICAL_REPORT.pdf`
 
 ---
 
